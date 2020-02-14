@@ -1,0 +1,2 @@
+defmodule SwitchX do
+end
