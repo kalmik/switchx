@@ -9,12 +9,12 @@ defmodule ESLServer do
     :socket
   ]
 
-  def start_link(), do: GenServer.start_link(__MODULE__, [], [])
+  def start_link(port), do: GenServer.start_link(__MODULE__, [port], [])
 
-  def init([]) do
+  def init([port]) do
     state = %__MODULE__{
       bind_address: "127.0.0.1",
-      bind_port: 9999
+      bind_port: port
     }
 
     GenServer.cast(self(), {:start})
@@ -42,7 +42,7 @@ defmodule ESLServer do
     {:noreply, state}
   end
 
-  def handle_info({:tcp, socket, "auth ClueCon2\n\n"}, state) do
+  def handle_info({:tcp, socket, "auth Incorrect\n\n"}, state) do
     :gen_tcp.send(socket, "Content-Type: command/reply\nReply-Text: -ERR invalid\n\n")
     {:noreply, state}
   end
@@ -103,13 +103,16 @@ defmodule SwitchX.Connection.Test do
   }
 
   setup do
+    port = 9901
+
     connection_opts = [
       host: "127.0.0.1",
-      port: 9999
+      port: port
     ]
 
-    {:ok, _server} = ESLServer.start_link()
+    ESLServer.start_link(port)
     {:ok, client} = Connection.Inbound.start_link(connection_opts)
+    {:ok, "Accepted"} = Connection.auth(client, "ClueCon")
 
     {
       :ok,
@@ -117,22 +120,11 @@ defmodule SwitchX.Connection.Test do
     }
   end
 
-  test "auth/2 with correct password", context do
-    assert {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
-  end
-
-  test "auth/2 with incorrect password", context do
-    assert {:error, "Denied"} = Connection.auth(context.conn, "ClueCon2")
-  end
-
   test "api/2 global_getvar", context do
-    {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
     assert {:ok, _data} = Connection.api(context.conn, "global_getvar")
   end
 
   test "api/2 uuid_getvar", context do
-    {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
-
     assert {:ok, _data} =
              Connection.api(
                context.conn,
@@ -141,8 +133,28 @@ defmodule SwitchX.Connection.Test do
   end
 
   test "parse background_job event", context do
-    {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
     assert :ok = Connection.listen_event(context.conn, "BACKGROUND_JOB")
-    assert_receive {:event, _event, _socket}, 1000
+    assert_receive {:event, _event, _socket}, 100
+  end
+end
+
+defmodule SwitchX.Connection.Unauthorized.Test do
+  use ExUnit.Case, async: false
+
+  alias SwitchX.{
+    Connection
+  }
+
+  test "auth/2 Denied" do
+    port = 9900
+
+    connection_opts = [
+      host: "127.0.0.1",
+      port: port
+    ]
+
+    ESLServer.start_link(port)
+    {:ok, client} = Connection.Inbound.start_link(connection_opts)
+    {:error, "Denied"} = Connection.auth(client, "Incorrect")
   end
 end

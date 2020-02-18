@@ -41,24 +41,30 @@ defmodule SwitchX.Connection do
     end
   end
 
-  defp recv(socket, length) do
-    :inet.setopts(socket, packet: :raw)
-
-    packet =
-      case :gen_tcp.recv(socket, length, 1_000) do
-        {:error, :timeout} -> ""
-        {:ok, packet} -> packet
+  defp consume(payload, socket) when is_binary(payload) do
+      case :gen_tcp.recv(socket, 0) do
+        {:ok, "\n"} -> consume(SwitchX.Event.new(payload), socket)
+        {:ok, data} -> consume(payload <> data, socket)
       end
-
-    :inet.setopts(socket, packet: :line)
-    packet
   end
 
-  defp consume(payload, socket) do
-    case :gen_tcp.recv(socket, 0) do
-      nil -> payload
-      {:ok, "\n"} -> payload
-      {:ok, data} -> consume(payload <> data, socket)
+  defp consume(event, socket) do
+    content_length = String.to_integer(Map.get(event.headers, "Content-Length", "0"))
+
+    if content_length > 0 do
+      :inet.setopts(socket, packet: :raw)
+
+      packet =
+        case :gen_tcp.recv(socket, content_length, 1_000) do
+          {:error, :timeout} -> ""
+          {:ok, packet} -> packet
+        end
+
+      :inet.setopts(socket, packet: :line)
+      new_event = consume(SwitchX.Event.new(packet), socket)
+      SwitchX.Event.merge(event, new_event)
+    else
+      event
     end
   end
 
@@ -72,35 +78,7 @@ defmodule SwitchX.Connection do
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
-    event =
-      payload
-      |> consume(socket)
-      |> SwitchX.Event.new()
-
-    content_length = String.to_integer(Map.get(event.headers, "Content-Length", "0"))
-
-    event =
-      case content_length > 0 do
-        false ->
-          event
-
-        true ->
-          new = recv(socket, content_length) |> SwitchX.Event.new()
-          SwitchX.Event.merge(event, new)
-      end
-
-    content_length = String.to_integer(Map.get(event.headers, "Content-Length", "0"))
-
-    event =
-      case content_length > 0 do
-        false ->
-          event
-
-        true ->
-          new = recv(socket, content_length) |> SwitchX.Event.new()
-          SwitchX.Event.merge(event, new)
-      end
-
+    event = consume(payload, socket)
     :inet.setopts(socket, active: :once)
     apply(__MODULE__, state, [:event, event, data])
   end
@@ -216,7 +194,7 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  def ready(:event, %{headers: %{"Content-Type" => "text/event-plain"}} = event, data) do
+  def ready(:event, event, data) do
     send(data.owner, {:event, event, data.socket})
     {:keep_state, data}
   end

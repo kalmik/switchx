@@ -5,7 +5,8 @@ defmodule SwitchX.Event do
   @doc """
   Create a Event from a plain message from freeswitch,
   """
-  def new(""), do: %__MODULE__{}
+  def new(), do: %__MODULE__{}
+  def new(""), do: new()
 
   def new(message) when is_binary(message) do
     message
