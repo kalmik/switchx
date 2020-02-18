@@ -42,10 +42,10 @@ defmodule SwitchX.Connection do
   end
 
   defp consume(payload, socket) when is_binary(payload) do
-      case :gen_tcp.recv(socket, 0) do
-        {:ok, "\n"} -> consume(SwitchX.Event.new(payload), socket)
-        {:ok, data} -> consume(payload <> data, socket)
-      end
+    case :gen_tcp.recv(socket, 0) do
+      {:ok, "\n"} -> consume(SwitchX.Event.new(payload), socket)
+      {:ok, data} -> consume(payload <> data, socket)
+    end
   end
 
   defp consume(event, socket) do
