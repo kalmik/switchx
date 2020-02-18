@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :xswitch, key: :value
+#     config :switchx, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:xswitch, :key)
+#     Application.get_env(:switchx, :key)
 #
 # You can also configure a 3rd-party app:
 #
