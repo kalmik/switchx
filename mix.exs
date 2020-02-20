@@ -13,6 +13,7 @@ defmodule SwitchX.MixProject do
   end
 
   defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(:dev), do: ["examples", "lib"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help compile.app" to learn about applications.
