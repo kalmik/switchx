@@ -93,4 +93,22 @@ defmodule SwitchX.Test.Mock.ESLServer do
     :gen_tcp.send(socket, message)
     {:noreply, state}
   end
+
+  def handle_info({:tcp, socket, "api originate user/200 &park()\n\n"}, state) do
+    :gen_tcp.send(socket, "Content-Type: api/response\nContent-Length: 40\n\n")
+    :gen_tcp.send(socket, "+OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\n")
+    {:noreply, state}
+  end
+
+  def handle_info({:tcp, socket, "api originate user/480 &park()\n\n"}, state) do
+    :gen_tcp.send(socket, "Content-Type: api/response\nContent-Length: 14\n\n")
+    :gen_tcp.send(socket, "-ERR NO_ANSWER\n\n")
+    {:noreply, state}
+  end
+
+  def handle_info({:tcp, socket, "api expand originate ${verto_contact(200)} &park()\n\n"}, state) do
+    :gen_tcp.send(socket, "Content-Type: api/response\nContent-Length: 40\n\n")
+    :gen_tcp.send(socket, "+OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\n")
+    {:noreply, state}
+  end
 end

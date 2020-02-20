@@ -71,5 +71,20 @@ defmodule SwitchX.Test.Connection do
       assert :ok = SwitchX.listen_event(context.conn, "BACKGROUND_JOB")
       assert_receive {:event, _event, _socket}, 100
     end
+
+    test "originate/3", context do
+      assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} = SwitchX.originate(context.conn, "user/200", "&park()")
+    end
+
+    test "originate/3 no answer", context do
+      assert {:error, "NO_ANSWER"} = SwitchX.originate(context.conn, "user/480", "&park()")
+    end
+
+    test "originate/4 using expand prefix", context do
+      assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} = SwitchX.originate(context.conn,
+                                                                               "${verto_contact(200)}",
+                                                                               "&park()", :expand)
+    end
+
   end
 end
