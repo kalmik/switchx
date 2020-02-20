@@ -69,7 +69,7 @@ defmodule SwitchX.Test.Connection do
 
     test "parse background_job event", context do
       assert :ok = SwitchX.listen_event(context.conn, "BACKGROUND_JOB")
-      assert_receive {:event, _event, _socket}, 100
+      assert_receive {:switchx_event, _event, _socket}, 100
     end
 
     test "originate/3", context do

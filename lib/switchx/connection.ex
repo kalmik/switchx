@@ -199,7 +199,7 @@ defmodule SwitchX.Connection do
   end
 
   def ready(:event, event, data) do
-    send(data.owner, {:event, event, data.socket})
+    send(data.owner, {:switchx_event, event, data.socket})
     {:keep_state, data}
   end
 end
