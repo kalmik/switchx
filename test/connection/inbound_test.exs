@@ -73,7 +73,8 @@ defmodule SwitchX.Test.Connection do
     end
 
     test "originate/3", context do
-      assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} = SwitchX.originate(context.conn, "user/200", "&park()")
+      assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} =
+               SwitchX.originate(context.conn, "user/200", "&park()")
     end
 
     test "originate/3 no answer", context do
@@ -81,10 +82,8 @@ defmodule SwitchX.Test.Connection do
     end
 
     test "originate/4 using expand prefix", context do
-      assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} = SwitchX.originate(context.conn,
-                                                                               "${verto_contact(200)}",
-                                                                               "&park()", :expand)
+      assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} =
+               SwitchX.originate(context.conn, "${verto_contact(200)}", "&park()", :expand)
     end
-
   end
 end

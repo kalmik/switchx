@@ -1,5 +1,4 @@
 defmodule SwitchX do
-
   ## API ##
 
   def auth(conn, password), do: :gen_statem.call(conn, {:auth, password})
@@ -16,9 +15,11 @@ defmodule SwitchX do
 
   defp perform_originate(conn, command) do
     {:ok, response} = api(conn, command)
-    parsed_body = response.body
-                  |> String.trim("\n")
-                  |> String.split(" ", parts: 2)
+
+    parsed_body =
+      response.body
+      |> String.trim("\n")
+      |> String.split(" ", parts: 2)
 
     case parsed_body do
       ["-ERR", term] -> {:error, term}
