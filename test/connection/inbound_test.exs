@@ -24,11 +24,15 @@ defmodule SwitchX.Test.Connection do
     end
 
     test "auth/2 Accepted", context do
-      {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
+      assert {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
     end
 
     test "auth/2 Denied", context do
-      {:error, "Denied"} = Connection.auth(context.conn, "Incorrect")
+      assert {:error, "Denied"} = Connection.auth(context.conn, "Incorrect")
+    end
+
+    test "try to query an api without be authed", context do
+      assert {:error, _reason} = Connection.api(context.conn, "global getvar")
     end
   end
 

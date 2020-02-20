@@ -100,11 +100,21 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def connecting(:call, any_kind, from, data) do
+    :gen_statem.reply(from, {:error, "Could not perform #{inspect(any_kind)}, not ready"})
+    {:keep_state, data}
+  end
+
   def authenticating(:call, {:auth, password}, from, data) do
     data = put_in(data.password, password)
     data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
 
     :gen_tcp.send(data.socket, "auth #{data.password}\n\n")
+    {:keep_state, data}
+  end
+
+  def authenticating(:call, any_kind, from, data) do
+    :gen_statem.reply(from, {:error, "Could not perform #{inspect(any_kind)}, not ready"})
     {:keep_state, data}
   end
 
