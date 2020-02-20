@@ -87,12 +87,6 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  ## API ##
-
-  def auth(conn, password), do: :gen_statem.call(conn, {:auth, password})
-  def api(conn, args), do: :gen_statem.call(conn, {:api, args})
-  def listen_event(conn, event_name), do: :gen_statem.call(conn, {:listen_event, event_name})
-
   ## CALL STATE FUNCTIONS ##
   def connecting(:call, {:auth, password}, from, data) do
     data = put_in(data.password, password)

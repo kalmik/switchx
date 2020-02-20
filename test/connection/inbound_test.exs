@@ -24,15 +24,15 @@ defmodule SwitchX.Test.Connection do
     end
 
     test "auth/2 Accepted", context do
-      assert {:ok, "Accepted"} = Connection.auth(context.conn, "ClueCon")
+      assert {:ok, "Accepted"} = SwitchX.auth(context.conn, "ClueCon")
     end
 
     test "auth/2 Denied", context do
-      assert {:error, "Denied"} = Connection.auth(context.conn, "Incorrect")
+      assert {:error, "Denied"} = SwitchX.auth(context.conn, "Incorrect")
     end
 
     test "try to query an api without be authed", context do
-      assert {:error, _reason} = Connection.api(context.conn, "global getvar")
+      assert {:error, _reason} = SwitchX.api(context.conn, "global getvar")
     end
   end
 
@@ -47,7 +47,7 @@ defmodule SwitchX.Test.Connection do
 
       SwitchX.Test.Mock.ESLServer.start_link(port)
       {:ok, client} = Connection.Inbound.start_link(connection_opts)
-      {:ok, "Accepted"} = Connection.auth(client, "ClueCon")
+      {:ok, "Accepted"} = SwitchX.auth(client, "ClueCon")
 
       {
         :ok,
@@ -56,19 +56,19 @@ defmodule SwitchX.Test.Connection do
     end
 
     test "api/2 global_getvar", context do
-      assert {:ok, _data} = Connection.api(context.conn, "global_getvar")
+      assert {:ok, _data} = SwitchX.api(context.conn, "global_getvar")
     end
 
     test "api/2 uuid_getvar", context do
       assert {:ok, _data} =
-               Connection.api(
+               SwitchX.api(
                  context.conn,
                  "uuid_getvar a1024ff5-a5b3-4c0a-abd3-fd4a89508b5b current_application"
                )
     end
 
     test "parse background_job event", context do
-      assert :ok = Connection.listen_event(context.conn, "BACKGROUND_JOB")
+      assert :ok = SwitchX.listen_event(context.conn, "BACKGROUND_JOB")
       assert_receive {:event, _event, _socket}, 100
     end
   end
