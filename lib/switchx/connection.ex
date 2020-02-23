@@ -2,6 +2,10 @@ defmodule SwitchX.Connection do
   @behaviour :gen_statem
   require Logger
 
+  alias SwitchX.Connection.{
+    Socket
+  }
+
   defstruct [
     :host,
     :port,
@@ -41,32 +45,6 @@ defmodule SwitchX.Connection do
     end
   end
 
-  defp consume(payload, socket) when is_binary(payload) do
-    case :gen_tcp.recv(socket, 0) do
-      {:ok, "\n"} -> consume(SwitchX.Event.new(payload), socket)
-      {:ok, data} -> consume(payload <> data, socket)
-    end
-  end
-
-  defp consume(event, socket) do
-    content_length = String.to_integer(Map.get(event.headers, "Content-Length", "0"))
-
-    if content_length > 0 do
-      :inet.setopts(socket, packet: :raw)
-
-      packet =
-        case :gen_tcp.recv(socket, content_length, 1_000) do
-          {:error, :timeout} -> ""
-          {:ok, packet} -> packet
-        end
-
-      :inet.setopts(socket, packet: :line)
-      SwitchX.Event.merge(event, SwitchX.Event.new(packet))
-    else
-      event
-    end
-  end
-
   def handle_event({:call, from}, message, state, data) do
     apply(__MODULE__, state, [:call, message, from, data])
   end
@@ -77,7 +55,7 @@ defmodule SwitchX.Connection do
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
-    event = consume(payload, socket)
+    event = Socket.recv(socket, payload)
     :inet.setopts(socket, active: :once)
     apply(__MODULE__, state, [:event, event, data])
   end
