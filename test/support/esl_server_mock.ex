@@ -69,7 +69,7 @@ defmodule SwitchX.Test.Mock.ESLServer do
   def handle_info({:tcp, socket, "event plain BACKGROUND_JOB\n\n"}, state) do
     message = """
     Content-Type: text/event-plain
-    Content-Length: 542
+    Content-Length: 582
 
     Job-UUID: 7f4db78a-17d7-11dd-b7a0-db4edd065621
     Job-Command: originate

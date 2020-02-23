@@ -61,8 +61,7 @@ defmodule SwitchX.Connection do
         end
 
       :inet.setopts(socket, packet: :line)
-      new_event = consume(SwitchX.Event.new(packet), socket)
-      SwitchX.Event.merge(event, new_event)
+      SwitchX.Event.merge(event, SwitchX.Event.new(packet))
     else
       event
     end
