@@ -121,6 +121,12 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(:call, {:linger}, from, data) do
+    :gen_tcp.send(data.socket, "linger\n\n")
+    :gen_statem.reply(from, :ok)
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(
