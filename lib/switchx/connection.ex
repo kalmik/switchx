@@ -38,11 +38,31 @@ defmodule SwitchX.Connection do
       connection_mode: connection_mode
     }
 
+    :inet.setopts(socket, active: :once)
+
     case data.connection_mode do
-      :inbound -> {:ok, :connecting, data}
-      :outbouncd -> {:ok, :ready, data}
-      _ -> {:ok, :disconnected, data}
+      :inbound ->
+        {:ok, :connecting, data}
+
+      :outbound ->
+        :gen_tcp.send(socket, "connect\n\n")
+        {:ok, :ready, data}
+
+      _ ->
+        :error
     end
+  end
+
+  ## API ##
+
+  def change_owner(conn, owner), do: :gen_statem.call(conn, {:chown, owner})
+
+  ## Handler events ##
+
+  def handle_event({:call, from}, {:chown, owner}, _state, data) do
+    data = put_in(data.owner, owner)
+    :gen_statem.reply(from, :ok)
+    {:keep_state, data}
   end
 
   def handle_event({:call, from}, message, state, data) do
@@ -176,7 +196,7 @@ defmodule SwitchX.Connection do
   end
 
   def ready(:event, event, data) do
-    send(data.owner, {:switchx_event, event, data.socket})
+    send(data.owner, {:switchx_event, event})
     {:keep_state, data}
   end
 end

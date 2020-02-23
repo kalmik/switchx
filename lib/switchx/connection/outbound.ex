@@ -1,43 +1,42 @@
 defmodule SwitchX.Connection.Outbound do
-  use GenServer
+  use Task
 
-  @socket_opts [:binary, active: true, reuseaddr: true]
+  @socket_opts [:binary, active: false, reuseaddr: true]
 
   defstruct [
     :bind_address,
     :bind_port,
-    :con,
-    clients: Map.new()
+    :listen_socket,
+    :mod
   ]
 
-  def start_link(opts), do: GenServer.start_link(__MODULE__, opts, [])
+  def start_link(opts), do: Task.start_link(__MODULE__, :init, [opts])
 
   def init(opts) do
-    bind_address = Keyword.fetch!(opts, :bind_address)
-    bind_port = Keyword.fetch!(opts, :bind_port)
+    mod = Keyword.fetch!(opts, :mod)
+    bind_address = Keyword.fetch!(opts, :host)
+    bind_port = Keyword.fetch!(opts, :port)
+
+    {:ok, listen_socket} = :gen_tcp.listen(bind_port, @socket_opts)
 
     state = %__MODULE__{
       bind_address: bind_address,
-      bind_port: bind_port
+      bind_port: bind_port,
+      listen_socket: listen_socket,
+      mod: mod
     }
 
-    GenServer.cast(self(), {:start})
-    {:ok, state}
+    run(state)
   end
 
-  def handle_cast({:start}, state) do
-    # ++ [ip: state.bind_address]
-    opts = @socket_opts
-    {:ok, listen_socket} = :gen_tcp.listen(state.bind_port, opts)
-    {:ok, socket} = :gen_tcp.accept(listen_socket)
-    state = put_in(state.con, socket)
-    {:noreply, state}
-  end
+  def run(state) do
+    {:ok, socket} = :gen_tcp.accept(state.listen_socket)
 
-  def handle_info({:tcp, socket, _payload}, state) do
-    {:ok, pid} = SwitchX.Connection.start_link(self(), socket, :outbound)
-    :gen_tcp.controlling_process(socket, pid)
-    state = put_in(state.clients, Map.put(state.clients, socket, pid))
-    {:noreply, state}
+    {:ok, connection} = SwitchX.Connection.start_link(self(), socket, :outbound)
+    {:ok, session} = apply(state.mod, :start_link, [connection])
+    :ok = SwitchX.Connection.change_owner(connection, session)
+
+    :gen_tcp.controlling_process(socket, connection)
+    run(state)
   end
 end
