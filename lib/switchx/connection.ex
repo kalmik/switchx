@@ -143,18 +143,7 @@ defmodule SwitchX.Connection do
         data
       ) do
     Logger.info("Connected")
-
-    data =
-      case :queue.out(data.commands_sent) do
-        {{_, reply_to}, q} ->
-          :gen_statem.reply(reply_to, {:ok, "Accepted"})
-          put_in(data.api_calls, q)
-
-        {:empty, _} ->
-          data
-      end
-
-    {:next_state, :ready, data}
+    {:next_state, :ready, reply_from_queue("commands_sent", {:ok, "Accepted"}, data)}
   end
 
   def authenticating(
@@ -163,18 +152,7 @@ defmodule SwitchX.Connection do
         data
       ) do
     Logger.info("Fail to Connect")
-
-    data =
-      case :queue.out(data.commands_sent) do
-        {{_, reply_to}, q} ->
-          :gen_statem.reply(reply_to, {:error, "Denied"})
-          put_in(data.api_calls, q)
-
-        {:empty, _} ->
-          data
-      end
-
-    {:next_state, :disconnected, data}
+    {:next_state, :disconnected, reply_from_queue("commands_sent", {:error, "Denied"}, data)}
   end
 
   def disconnected(:event, %{headers: %{"Content-Type" => "text/disconnect-notice"}}, data) do
@@ -182,21 +160,26 @@ defmodule SwitchX.Connection do
   end
 
   def ready(:event, %{headers: %{"Content-Type" => "api/response"}} = event, data) do
-    data =
-      case :queue.out(data.api_calls) do
-        {{_, reply_to}, q} ->
-          :gen_statem.reply(reply_to, {:ok, event})
-          put_in(data.api_calls, q)
-
-        {:empty, _} ->
-          data
-      end
-
-    {:keep_state, data}
+    {:keep_state, reply_from_queue("api_calls", {:ok, event}, data)}
   end
 
   def ready(:event, event, data) do
     send(data.owner, {:switchx_event, event})
     {:keep_state, data}
+  end
+
+  ## HELPERS ##
+
+  defp reply_from_queue(queue_name, response, data) do
+    queue = Map.get(data, String.to_atom(queue_name))
+
+    case :queue.out(queue) do
+      {{_, reply_to}, q} ->
+        :gen_statem.reply(reply_to, response)
+        Map.put(data, String.to_atom(queue_name), q)
+
+      {:empty, _} ->
+        data
+    end
   end
 end
