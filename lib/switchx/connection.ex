@@ -123,7 +123,7 @@ defmodule SwitchX.Connection do
 
   def ready(:call, {:linger}, from, data) do
     :gen_tcp.send(data.socket, "linger\n\n")
-    :gen_statem.reply(from, :ok)
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
     {:keep_state, data}
   end
 
@@ -167,6 +167,14 @@ defmodule SwitchX.Connection do
 
   def ready(:event, %{headers: %{"Content-Type" => "api/response"}} = event, data) do
     {:keep_state, reply_from_queue("api_calls", {:ok, event}, data)}
+  end
+
+  def ready(
+        :event,
+        %{headers: %{"Content-Type" => "command/reply", "Reply-Text" => "+OK will linger"}},
+        data
+      ) do
+    {:keep_state, reply_from_queue("commands_sent", {:ok, "Lingering"}, data)}
   end
 
   def ready(:event, event, data) do
