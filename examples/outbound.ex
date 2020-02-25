@@ -5,7 +5,7 @@ defmodule Examples.OutboundSocket do
 end
 
 defmodule Examples.OutboundSession do
-  @behavior :gen_statem
+  @behaviour :gen_statem
 
   defstruct [
     :conn

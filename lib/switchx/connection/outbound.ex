@@ -1,6 +1,8 @@
 defmodule SwitchX.Connection.Outbound do
   use Task, restart: :transient
 
+  require Logger
+
   @socket_opts [:binary, active: false, reuseaddr: true]
 
   defstruct [
@@ -30,10 +32,16 @@ defmodule SwitchX.Connection.Outbound do
   end
 
   def run(state) do
-    {:ok, socket} = :gen_tcp.accept(state.listen_socket)
+    socket =
+      case :gen_tcp.accept(state.listen_socket) do
+        {:ok, socket} ->
+          Logger.info("New connection from #{inspect(:inet.peername(socket))}")
+          {:ok, connection} = SwitchX.Connection.start_link(state.mod, socket, :outbound)
+          :gen_tcp.controlling_process(socket, connection)
+          run(state)
 
-    {:ok, connection} = SwitchX.Connection.start_link(state.mod, socket, :outbound)
-    :gen_tcp.controlling_process(socket, connection)
-    run(state)
+        _ ->
+          :error
+      end
   end
 end
