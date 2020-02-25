@@ -10,10 +10,10 @@ defmodule SwitchX.Connection.Outbound do
     :mod
   ]
 
-  def start_link(opts), do: Task.start_link(__MODULE__, :init, [opts])
+  def start_link(module, opts), do: Task.start_link(__MODULE__, :init, [module, opts])
 
-  def init(opts) do
-    mod = Keyword.fetch!(opts, :mod)
+  def init(module, opts) do
+    mod = module
     bind_address = Keyword.fetch!(opts, :host)
     bind_port = Keyword.fetch!(opts, :port)
 
