@@ -22,48 +22,50 @@ defmodule SwitchX.Connection do
     :handle_event_function
   end
 
-  def start_link(owner, socket, connection_mode, password \\ nil) when is_port(socket) do
-    :gen_statem.start_link(__MODULE__, [owner, socket, connection_mode, password], [])
+  def start_link(owner, socket, :inbound) when is_port(socket) and is_pid(owner) do
+    :gen_statem.start_link(__MODULE__, [owner, socket, :inbound], [])
   end
 
-  def init([owner, socket, connection_mode, password]) when is_port(socket) do
+  def start_link(session_module, socket, :outbound) do
+    :gen_statem.start_link(__MODULE__, [session_module, socket, :outbound], [])
+  end
+
+  def init([owner, socket, :inbound]) when is_port(socket) do
     {:ok, {host, port}} = :inet.peername(socket)
 
     data = %__MODULE__{
       host: host,
       port: port,
-      password: password,
       owner: owner,
       socket: socket,
-      connection_mode: connection_mode
+      connection_mode: :inbound
     }
 
     :inet.setopts(socket, active: :once)
 
-    case data.connection_mode do
-      :inbound ->
-        {:ok, :connecting, data}
-
-      :outbound ->
-        :gen_tcp.send(socket, "connect\n\n")
-        {:ok, :ready, data}
-
-      _ ->
-        :error
-    end
+    {:ok, :connecting, data}
   end
 
-  ## API ##
+  def init([session_module, socket, :outbound]) when is_port(socket) do
+    {:ok, {host, port}} = :inet.peername(socket)
+    {:ok, owner} = apply(session_module, :start_link, [self()])
 
-  def change_owner(conn, owner), do: :gen_statem.call(conn, {:chown, owner})
+    data = %__MODULE__{
+      host: host,
+      port: port,
+      owner: owner,
+      socket: socket,
+      connection_mode: :outbound
+    }
+
+    :inet.setopts(socket, active: :once)
+
+    :gen_tcp.send(socket, "connect\n\n")
+
+    {:ok, :ready, data}
+  end
 
   ## Handler events ##
-
-  def handle_event({:call, from}, {:chown, owner}, _state, data) do
-    data = put_in(data.owner, owner)
-    :gen_statem.reply(from, :ok)
-    {:keep_state, data}
-  end
 
   def handle_event({:call, from}, message, state, data) do
     apply(__MODULE__, state, [:call, message, from, data])

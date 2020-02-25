@@ -1,5 +1,5 @@
 defmodule SwitchX.Connection.Outbound do
-  use Task
+  use Task, restart: :transient
 
   @socket_opts [:binary, active: false, reuseaddr: true]
 
@@ -32,10 +32,7 @@ defmodule SwitchX.Connection.Outbound do
   def run(state) do
     {:ok, socket} = :gen_tcp.accept(state.listen_socket)
 
-    {:ok, connection} = SwitchX.Connection.start_link(self(), socket, :outbound)
-    {:ok, session} = apply(state.mod, :start_link, [connection])
-    :ok = SwitchX.Connection.change_owner(connection, session)
-
+    {:ok, connection} = SwitchX.Connection.start_link(state.mod, socket, :outbound)
     :gen_tcp.controlling_process(socket, connection)
     run(state)
   end
