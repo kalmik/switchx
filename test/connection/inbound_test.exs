@@ -85,5 +85,9 @@ defmodule SwitchX.Test.Connection do
       assert {:ok, "7f4de4bc-17d7-11dd-b7a0-db4edd065621"} =
                SwitchX.originate(context.conn, "${verto_contact(200)}", "&park()", :expand)
     end
+
+    test "linger/1", context do
+      assert {:ok, "Lingering"} = SwitchX.linger(context.conn)
+    end
   end
 end

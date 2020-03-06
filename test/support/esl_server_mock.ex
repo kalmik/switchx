@@ -42,6 +42,11 @@ defmodule SwitchX.Test.Mock.ESLServer do
     {:noreply, state}
   end
 
+  def handle_info({:tcp, socket, "linger\n\n"}, state) do
+    :gen_tcp.send(socket, "Content-Type: command/reply\nReply-Text: +OK will linger\n\n")
+    {:noreply, state}
+  end
+
   def handle_info({:tcp, socket, "auth Incorrect\n\n"}, state) do
     :gen_tcp.send(socket, "Content-Type: command/reply\nReply-Text: -ERR invalid\n\n")
     {:noreply, state}
