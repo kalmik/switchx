@@ -29,9 +29,6 @@ defmodule SwitchX.Connection.Socket do
     end
   end
 
-  @doc """
-  Given a parsed initial event check if there is body to be read, and read them all.
-  """
   @spec read_body(socket :: Port, event :: switchx_event) :: switchx_event
   defp read_body(socket, event) do
     content_length = String.to_integer(Map.get(event.headers, "Content-Length", "0"))

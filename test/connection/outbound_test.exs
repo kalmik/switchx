@@ -1,5 +1,5 @@
 defmodule SwitchX.Test.Connection.Outbound.OutboundSession do
-  def start_link(conn), do: {:ok, "pid"}
+  def start_link(_conn), do: {:ok, "pid"}
 end
 
 defmodule SwitchX.Test.Connection.Outbound do
