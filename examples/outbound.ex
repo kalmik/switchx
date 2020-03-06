@@ -1,10 +1,12 @@
 defmodule Examples.OutboundSocket do
+  @moduledoc false
   def init() do
     {:ok, _conn} = SwitchX.Connection.Outbound.start_link(Examples.OutboundSession, [host: "127.0.0.1", port: 9998])
   end
 end
 
 defmodule Examples.OutboundSession do
+  @moduledoc false
   @behaviour :gen_statem
 
   defstruct [

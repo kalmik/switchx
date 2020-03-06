@@ -53,9 +53,7 @@ defmodule SwitchX.Event.Headers do
 
   defp uri_decode(value), do: value
 
-  @doc """
-  Collectable callback to describe how the data must be stored
-  """
+  @doc false
   def collect(event_body, term) do
     case term do
       {:cont, [key, value]} ->

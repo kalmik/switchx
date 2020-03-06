@@ -8,7 +8,16 @@ defmodule SwitchX.MixProject do
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+
+      # Docs
+      name: "SwitchX",
+      source_url: "https://github.com/kalmik/switchx",
+      homepage_url: "",
+      docs: [
+        main: "SwitchX",
+        extras: ["README.md"]
+      ]
     ]
   end
 
@@ -26,7 +35,8 @@ defmodule SwitchX.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:ex_doc, "~> 0.18.0", only: :dev, runtime: false}
     ]
   end
 end

@@ -5,9 +5,11 @@ defmodule SwitchX.Event do
   @doc """
   Create a Event from a plain message from freeswitch,
   """
+  @spec new() :: SwitchX.Event
   def new(), do: %__MODULE__{}
   def new(""), do: new()
 
+  @spec new(message :: String) :: SwitchX.Event
   def new(message) when is_binary(message) do
     message
     |> String.split("\n\n")
@@ -21,6 +23,7 @@ defmodule SwitchX.Event do
     |> SwitchX.Event.new()
   end
 
+  @spec new({headers :: SwitchX.Event.Header, body :: String}) :: SwitchX.Event
   def new({headers, body}) do
     %__MODULE__{
       headers: SwitchX.Event.Headers.new(headers).data,
@@ -28,10 +31,12 @@ defmodule SwitchX.Event do
     }
   end
 
+  @doc """
+  Updates a SwitchX.Event with another event message and body, see Map.merge/2
+  """
+  @spec merge(event :: SwitchX.Event, new :: SwitchX.Event) :: SwitchX.Event
   def merge(event, new) do
     event = put_in(event.headers, Map.merge(event.headers, new.headers))
     put_in(event.body, event.body <> new.body)
   end
-
-  def append_body(event, body), do: put_in(event.body, event.body <> body)
 end

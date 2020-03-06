@@ -1,8 +1,30 @@
 defmodule SwitchX.Connection.Inbound do
+  @moduledoc """
+  Provides an abstraction to a FreeSWITCH inbound connection
+
+  Inbound mode means you run your applications as clients,
+  and connect to the FreeSWITCH server to invoke commands and control FreeSWITCH.
+  """
   @mode :inbound
   @socket_opts [:binary, active: :once, packet: :line]
   @timeout 5_000
 
+  @doc """
+  Starts a new inbond connection.
+
+  Returns `{:ok, Pid}`
+
+  ## Examples
+
+      iex> paramaters = [
+        host: "127.0.0.1",
+        port: 8021,
+      ]
+
+      iex> SwitchX.Connection.Inbound.start_link(paramaters)
+      {:ok, connection_pid}
+
+  """
   def start_link(opts) do
     host = Keyword.fetch!(opts, :host)
     port = Keyword.fetch!(opts, :port)

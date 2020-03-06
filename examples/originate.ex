@@ -1,4 +1,5 @@
 defmodule Examples.InboundSocket do
+  @moduledoc false
   def originate() do
     {:ok, conn} = SwitchX.Connection.Inbound.start_link([host: "127.0.0.1", port: 8021])
     SwitchX.auth(conn, "ClueCon")

@@ -1,9 +1,6 @@
 defmodule SwitchX.Connection.Socket do
+  @moduledoc false
   @type switchx_event :: SwitchX.Event.new()
-
-  @moduledoc """
-  This modules provide to work with FreeSWITCH ESL socket
-  """
 
   @doc """
   Given a port and a initial payload continues reading until it gets a full parsed

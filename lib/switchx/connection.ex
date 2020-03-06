@@ -1,4 +1,6 @@
 defmodule SwitchX.Connection do
+  @moduledoc false
+
   @behaviour :gen_statem
   require Logger
 
