@@ -116,4 +116,30 @@ defmodule SwitchX.Test.Mock.ESLServer do
     :gen_tcp.send(socket, "+OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\n")
     {:noreply, state}
   end
+
+  def handle_info(
+        {:tcp, socket,
+         "sendevent SEND_INFO\ncontent-length: 15\ncontent-type: text/plain\nfrom-uri: sip:1@1.2.3.4\nprofile: external\nto-uri: sip:1@2.3.4.5\n\ntest\n\n"},
+        state
+      ) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK 42b44d0f-e579-47f5-bbeb-e74b1940f169\n\n"
+    )
+
+    {:noreply, state}
+  end
+
+  def handle_info(
+        {:tcp, socket,
+         "sendevent SEND_INFO\ncontent-length: 15\ncontent-type: text/plain\nfrom-uri: sip:1@1.2.3.4\nprofile: external\nto-uri: sip:1@2.3.4.5\nunique-id: 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\ntest\n\n"},
+        state
+      ) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\n"
+    )
+
+    {:noreply, state}
+  end
 end

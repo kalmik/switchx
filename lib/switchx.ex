@@ -75,6 +75,45 @@ defmodule SwitchX do
   @spec listen_event(conn :: Pid, event_name :: String) :: :ok
   def listen_event(conn, event_name), do: :gen_statem.call(conn, {:listen_event, event_name})
 
+  @doc """
+  Send an event into the event system (multi line input for headers).
+  ```
+  sendevent <event-name>
+  <headers>
+
+  <body>
+  ```
+
+  Returns
+  ```
+    {:ok, term}
+  ```
+
+  ## Examples
+
+      iex>  event_headers =
+        SwitchX.Event.Headers.new(%{
+          "profile": "external",
+        })
+      event = SwitchX.Event.new(event_headers, "")
+      SwitchX.send_event(conn, "SEND_INFO", event)
+      {:ok, response}
+  """
+  @spec send_event(conn :: Pid, event_name :: String, event :: SwitchX.Event) :: {:ok, term}
+  def send_event(conn, event_name, event) do
+    send_event(conn, event_name, event, nil)
+  end
+
+  @spec send_event(
+          conn :: Pid,
+          event_name :: String,
+          event :: SwitchX.Event,
+          event_uuid :: String
+        ) :: :ok | :error
+  def send_event(conn, event_name, event, event_uuid) do
+    :gen_statem.call(conn, {:sendevent, event_name, event, event_uuid})
+  end
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end

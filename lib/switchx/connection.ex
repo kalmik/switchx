@@ -131,6 +131,18 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(:call, {:sendevent, event_name, event, event_uuid}, from, data) do
+    event =
+      case event_uuid do
+        nil -> event
+        uuid -> put_in(event.headers["unique-id"], uuid)
+      end
+
+    :gen_tcp.send(data.socket, "sendevent #{event_name}\n#{SwitchX.Event.dump(event)}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(
@@ -169,16 +181,20 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  def ready(:event, %{headers: %{"Content-Type" => "api/response"}} = event, data) do
-    {:keep_state, reply_from_queue("api_calls", {:ok, event}, data)}
-  end
-
   def ready(
         :event,
         %{headers: %{"Content-Type" => "command/reply", "Reply-Text" => "+OK will linger"}},
         data
       ) do
     {:keep_state, reply_from_queue("commands_sent", {:ok, "Lingering"}, data)}
+  end
+
+  def ready(:event, %{headers: %{"Content-Type" => "api/response"}} = event, data) do
+    {:keep_state, reply_from_queue("api_calls", {:ok, event}, data)}
+  end
+
+  def ready(:event, %{headers: %{"Content-Type" => "command/reply"}} = event, data) do
+    {:keep_state, reply_from_queue("commands_sent", {:ok, event}, data)}
   end
 
   def ready(:event, event, data) do

@@ -89,5 +89,44 @@ defmodule SwitchX.Test.Connection do
     test "linger/1", context do
       assert {:ok, "Lingering"} = SwitchX.linger(context.conn)
     end
+
+    test "send_event/3", context do
+      event_headers =
+        SwitchX.Event.Headers.new(%{
+          profile: "external",
+          "content-type": "text/plain",
+          "to-uri": "sip:1@2.3.4.5",
+          "from-uri": "sip:1@1.2.3.4",
+          "content-length": 15
+        })
+
+      event_body = "test"
+
+      event = SwitchX.Event.new(event_headers, event_body)
+      assert {:ok, _event} = SwitchX.send_event(context.conn, "SEND_INFO", event)
+    end
+
+    test "send_event/4 attach event uuid", context do
+      event_headers =
+        SwitchX.Event.Headers.new(%{
+          profile: "external",
+          "content-type": "text/plain",
+          "to-uri": "sip:1@2.3.4.5",
+          "from-uri": "sip:1@1.2.3.4",
+          "content-length": 15
+        })
+
+      event_body = "test"
+
+      event = SwitchX.Event.new(event_headers, event_body)
+
+      assert {:ok, _event} =
+               SwitchX.send_event(
+                 context.conn,
+                 "SEND_INFO",
+                 event,
+                 "7f4de4bc-17d7-11dd-b7a0-db4edd065621"
+               )
+    end
   end
 end
