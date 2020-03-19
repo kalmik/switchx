@@ -21,11 +21,13 @@ defmodule SwitchX.Event.Headers do
   """
   def new([]), do: %__MODULE__{}
 
-  def new(headers) do
+  def new(headers) when is_list(headers) do
     headers
     |> Enum.map(fn line -> String.split(line, ": ", parts: 2) end)
     |> Enum.into(%__MODULE__{})
   end
+
+  def new(headers), do: %__MODULE__{data: headers}
 
   ## Access CALLBACKS ##
 

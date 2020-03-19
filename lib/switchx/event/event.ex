@@ -2,13 +2,13 @@ defmodule SwitchX.Event do
   defstruct headers: Map.new(),
             body: ""
 
-  @doc """
-  Create a Event from a plain message from freeswitch,
-  """
   @spec new() :: SwitchX.Event
   def new(), do: %__MODULE__{}
   def new(""), do: new()
 
+  @doc """
+  Create a Event from a plain message from freeswitch,
+  """
   @spec new(message :: String) :: SwitchX.Event
   def new(message) when is_binary(message) do
     message
@@ -20,14 +20,20 @@ defmodule SwitchX.Event do
         _ -> false
       end
     end)
-    |> SwitchX.Event.new()
+    |> SwitchX.Event.build()
   end
 
-  @spec new({headers :: SwitchX.Event.Header, body :: String}) :: SwitchX.Event
-  def new({headers, body}) do
+  @spec new(headers :: SwitchX.Event.Header) :: SwitchX.Event
+  def new(headers), do: new(headers, "")
+
+  @doc """
+  Given a SwichX.Event.Headers and a body string create a new Event
+  """
+  @spec new(headers :: SwitchX.Event.Header, body :: String) :: SwitchX.Event
+  def new(headers, body) do
     %__MODULE__{
-      headers: SwitchX.Event.Headers.new(headers).data,
-      body: Enum.join(body, "\n")
+      headers: headers.data,
+      body: body
     }
   end
 
