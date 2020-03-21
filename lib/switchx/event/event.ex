@@ -79,6 +79,6 @@ defmodule SwitchX.Event do
       end)
       |> Enum.join("\n")
 
-    "#{h_part}\n\n#{event.body}"
+    String.trim("#{h_part}\n\n#{event.body}", "\n\n")
   end
 end
