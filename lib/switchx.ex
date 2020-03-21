@@ -114,6 +114,33 @@ defmodule SwitchX do
     :gen_statem.call(conn, {:sendevent, event_name, event, event_uuid})
   end
 
+  @doc """
+  sendmsg is used to control the behavior of FreeSWITCH.
+  UUID is mandatory when conn is inbound mode, and it refers to a specific call
+  (i.e., a channel or call leg or session).
+
+  Returns a payload with an command/reply event
+
+  ## Examples
+
+      iex> message = SwitchX.Event.Headers.new(%{
+          "call-command": "hangup",
+          "hangup-cause": "NORMAL_CLEARING",
+        }) |> SwitchX.Event.new()
+
+        SwitchX.send_message(conn, uuid, message)
+        {:ok, event}
+  """
+  @spec send_message(conn :: Pid, uuid :: String, event :: SwitchX.Event) :: {:ok, term}
+  def send_message(conn, uuid, event) when is_binary(uuid) do
+    :gen_statem.call(conn, {:sendmsg, uuid, event})
+  end
+
+  @spec send_message(conn :: Pid, event :: SwitchX.Event) :: {:ok, term}
+  def send_message(conn, event) do
+    :gen_statem.call(conn, {:sendmsg, event})
+  end
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end

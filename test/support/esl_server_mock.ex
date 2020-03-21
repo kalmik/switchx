@@ -142,4 +142,17 @@ defmodule SwitchX.Test.Mock.ESLServer do
 
     {:noreply, state}
   end
+
+  def handle_info(
+        {:tcp, socket,
+         "sendmsg UUID\ncall-command: hangup\nhangup-cause: NORMAL_CLEARING\n\n"},
+        state
+      ) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK\n\n"
+    )
+
+    {:noreply, state}
+  end
 end

@@ -128,5 +128,36 @@ defmodule SwitchX.Test.Connection do
                  "7f4de4bc-17d7-11dd-b7a0-db4edd065621"
                )
     end
+
+    test "send_message/2 returns {:error, reason} when using in inbound mode", context do
+      event_headers =
+        SwitchX.Event.Headers.new(%{
+          "call-command": "execute",
+          "execute-app-name": "playback",
+          "execute-app-arg": "/tmp/test.wav"
+        })
+
+      event = SwitchX.Event.new(event_headers)
+      assert {:error, _reason} = SwitchX.send_message(context.conn, event)
+    end
+
+    test "send_message/3", context do
+      event_headers =
+        SwitchX.Event.Headers.new(%{
+          "call-command": "hangup",
+          "hangup-cause": "NORMAL_CLEARING",
+        })
+
+      event = SwitchX.Event.new(event_headers)
+
+      assert {:ok,
+              %SwitchX.Event{
+                body: "",
+                headers: %{
+                  "Content-Type" => "command/reply",
+                  "Reply-Text" => "+OK"
+                }
+              }} = SwitchX.send_message(context.conn, "UUID", event)
+    end
   end
 end

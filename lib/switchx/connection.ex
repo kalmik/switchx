@@ -143,6 +143,28 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(:call, {:sendmsg, uuid, event}, from, data) do
+    :gen_tcp.send(data.socket, "sendmsg #{uuid}\n#{SwitchX.Event.dump(event)}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
+  def ready(:call, {:sendmsg, event}, from, %{connection_mode: :inbound} = data) do
+    :gen_statem.reply(
+      from,
+      {:error, "UUID is required for inbound mode, see SwitchX.send_message/3."}
+    )
+
+    {:keep_state, data}
+  end
+
+  def ready(:call, {:sendmsg, event}, from, %{connection_mode: :outbound} = data) do
+    # When outbound socket we can sendmsg without specifying the channel UUID, it's implicit
+    :gen_tcp.send(data.socket, "sendmsg \n#{SwitchX.Event.dump(event)}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(
