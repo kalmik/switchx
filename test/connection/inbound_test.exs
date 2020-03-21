@@ -93,7 +93,7 @@ defmodule SwitchX.Test.Connection do
     test "send_event/3", context do
       event_headers =
         SwitchX.Event.Headers.new(%{
-          "profile": "external",
+          profile: "external",
           "content-type": "text/plain",
           "to-uri": "sip:1@2.3.4.5",
           "from-uri": "sip:1@1.2.3.4",
@@ -109,7 +109,7 @@ defmodule SwitchX.Test.Connection do
     test "send_event/4 attach event uuid", context do
       event_headers =
         SwitchX.Event.Headers.new(%{
-          "profile": "external",
+          profile: "external",
           "content-type": "text/plain",
           "to-uri": "sip:1@2.3.4.5",
           "from-uri": "sip:1@1.2.3.4",
@@ -145,7 +145,7 @@ defmodule SwitchX.Test.Connection do
       event_headers =
         SwitchX.Event.Headers.new(%{
           "call-command": "hangup",
-          "hangup-cause": "NORMAL_CLEARING",
+          "hangup-cause": "NORMAL_CLEARING"
         })
 
       event = SwitchX.Event.new(event_headers)

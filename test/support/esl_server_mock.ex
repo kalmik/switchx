@@ -144,8 +144,7 @@ defmodule SwitchX.Test.Mock.ESLServer do
   end
 
   def handle_info(
-        {:tcp, socket,
-         "sendmsg UUID\ncall-command: hangup\nhangup-cause: NORMAL_CLEARING\n\n"},
+        {:tcp, socket, "sendmsg UUID\ncall-command: hangup\nhangup-cause: NORMAL_CLEARING\n\n"},
         state
       ) do
     :gen_tcp.send(
