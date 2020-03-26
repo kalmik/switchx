@@ -131,14 +131,12 @@ defmodule SwitchX do
         SwitchX.send_message(conn, uuid, message)
         {:ok, event}
   """
-  @spec send_message(conn :: Pid, uuid :: String, event :: SwitchX.Event) :: {:ok, term}
-  def send_message(conn, uuid, event) when is_binary(uuid) do
-    :gen_statem.call(conn, {:sendmsg, uuid, event})
-  end
-
   @spec send_message(conn :: Pid, event :: SwitchX.Event) :: {:ok, term}
-  def send_message(conn, event) do
-    :gen_statem.call(conn, {:sendmsg, event})
+  def send_message(conn, event), do: send_message(conn, nil, event)
+
+  @spec send_message(conn :: Pid, uuid :: String, event :: SwitchX.Event) :: {:ok, term}
+  def send_message(conn, uuid, event) do
+    :gen_statem.call(conn, {:sendmsg, uuid, event})
   end
 
   @doc """

@@ -145,24 +145,7 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  def ready(
-        :call,
-        {:sendmsg, uuid, %{headers: %{"Event-UUID" => event_uuid}} = event},
-        from,
-        data
-      ) do
-    :gen_tcp.send(data.socket, "sendmsg #{uuid}\n#{SwitchX.Event.dump(event)}\n\n")
-    data = put_in(data.applications_pending, Map.put(data.applications_pending, event_uuid, from))
-    {:keep_state, data}
-  end
-
-  def ready(:call, {:sendmsg, uuid, event}, from, data) do
-    :gen_tcp.send(data.socket, "sendmsg #{uuid}\n#{SwitchX.Event.dump(event)}\n\n")
-    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
-    {:keep_state, data}
-  end
-
-  def ready(:call, {:sendmsg, _event}, from, %{connection_mode: :inbound} = data) do
+  def ready(:call, {:sendmsg, nil, _event}, from, %{connection_mode: :inbound} = data) do
     :gen_statem.reply(
       from,
       {:error, "UUID is required for inbound mode, see SwitchX.send_message/3."}
@@ -171,21 +154,21 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  def ready(
-        :call,
-        {:sendmsg, %{headers: %{"Event-UUID" => event_uuid}} = event},
-        from,
-        %{connection_mode: :outbound} = data
-      ) do
-    :gen_tcp.send(data.socket, "sendmsg \n#{SwitchX.Event.dump(event)}\n\n")
-    data = put_in(data.applications_pending, Map.put(data.applications_pending, event_uuid, from))
-    {:keep_state, data}
-  end
+  def ready(:call, {:sendmsg, uuid, event}, from, data) do
+    case uuid do
+      nil -> :gen_tcp.send(data.socket, "sendmsg\n#{SwitchX.Event.dump(event)}\n\n")
+      uuid -> :gen_tcp.send(data.socket, "sendmsg #{uuid}\n#{SwitchX.Event.dump(event)}\n\n")
+    end
 
-  def ready(:call, {:sendmsg, event}, from, %{connection_mode: :outbound} = data) do
-    # When outbound socket we can sendmsg without specifying the channel UUID, it's implicit
-    :gen_tcp.send(data.socket, "sendmsg \n#{SwitchX.Event.dump(event)}\n\n")
-    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    event_uuid = Map.get(event.headers, "Event-UUID")
+
+    data =
+      if is_nil(event_uuid) do
+        put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+      else
+        put_in(data.applications_pending, Map.put(data.applications_pending, event_uuid, from))
+      end
+
     {:keep_state, data}
   end
 
