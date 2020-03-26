@@ -190,9 +190,12 @@ defmodule SwitchX.Test.Connection do
               }} = SwitchX.my_events(context.conn, "UUID")
     end
 
+    test "hangup/2", context do
+      assert :ok = SwitchX.hangup(context.conn, "UUID", "NORMAL_CLEARING")
+    end
+
     test "exit/1", context do
       assert :ok = SwitchX.exit(context.conn)
     end
-
   end
 end

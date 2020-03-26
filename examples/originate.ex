@@ -14,13 +14,8 @@ defmodule Examples.InboundSocket do
         event = SwitchX.execute(conn, uuid, "playback", "ivr/ivr-welcome_to_freeswitch.wav")
         IO.puts("Playback duration was #{event.headers["variable_playback_ms"]} ms")
 
-        message = SwitchX.Event.Headers.new(%{
-          "call-command": "hangup",
-          "hangup-cause": "NORMAL_CLEARING",
-        }) |> SwitchX.Event.new()
-
         IO.puts("Bye")
-        SwitchX.send_message(conn, uuid, message)
+        SwitchX.hangup(conn, uuid, "NORMAL_CLEARING")
         SwitchX.exit(conn)
 
         :ok
@@ -28,4 +23,3 @@ defmodule Examples.InboundSocket do
     end
   end
 end
-

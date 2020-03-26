@@ -199,6 +199,34 @@ defmodule SwitchX do
     end
   end
 
+  @doc """
+  Hang up the call with a hangup_cause.
+  """
+  @spec hangup(conn :: Pid, cause :: String) :: :ok | {:error, term}
+  def hangup(conn, hangup_cause), do: hangup(conn, nil, hangup_cause)
+
+  @spec hangup(conn :: Pid, uuid :: String, cause :: String) :: :ok | {:error, term}
+  def hangup(conn, uuid, hangup_cause) do
+    message =
+      SwitchX.Event.Headers.new(%{
+        "call-command": "hangup",
+        "hangup-cause": hangup_cause
+      })
+      |> SwitchX.Event.new()
+
+    {:ok, event} = send_message(conn, uuid, message)
+
+    reply =
+      event.headers["Reply-Text"]
+      |> String.trim("\n")
+      |> String.split(" ", parts: 2)
+
+    case reply do
+      ["-ERR", term] -> {:error, term}
+      ["+OK"] -> :ok
+    end
+  end
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end
