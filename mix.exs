@@ -9,6 +9,7 @@ defmodule SwitchX.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
+      package: package(),
 
       # Docs
       name: "SwitchX",
@@ -24,6 +25,16 @@ defmodule SwitchX.MixProject do
   defp elixirc_paths(:test), do: ["test/support", "lib"]
   defp elixirc_paths(:dev), do: ["examples", "lib"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp package() do
+    [
+      description: "FreeSWITCH Event Socket Protocol client implementation with  Elixir",
+      # These are the default files included in the package
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/kalmik/switchx"}
+    ]
+  end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
