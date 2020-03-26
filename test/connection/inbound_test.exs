@@ -189,5 +189,10 @@ defmodule SwitchX.Test.Connection do
                 }
               }} = SwitchX.my_events(context.conn, "UUID")
     end
+
+    test "exit/1", context do
+      assert :ok = SwitchX.exit(context.conn)
+    end
+
   end
 end

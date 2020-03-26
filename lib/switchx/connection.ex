@@ -210,6 +210,12 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(:call, {:exit}, from, data) do
+    :gen_tcp.send(data.socket, "exit\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(

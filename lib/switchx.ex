@@ -183,6 +183,24 @@ defmodule SwitchX do
   @spec my_events(conn :: Pid, uuid :: String) :: :ok | {:error, term}
   def my_events(conn, uuid), do: :gen_statem.call(conn, {:myevents, uuid})
 
+  @doc """
+  Closes the socket connection.
+  """
+  @spec exit(conn :: Pid) :: :ok | {:error, term}
+  def exit(conn) do
+    {:ok, event} = :gen_statem.call(conn, {:exit})
+
+    reply =
+      event.headers["Reply-Text"]
+      |> String.trim("\n")
+      |> String.split(" ", parts: 2)
+
+    case reply do
+      ["-ERR", term] -> {:error, term}
+      ["+OK", _] -> :ok
+    end
+  end
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end

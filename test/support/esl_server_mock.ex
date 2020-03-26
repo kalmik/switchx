@@ -188,4 +188,13 @@ defmodule SwitchX.Test.Mock.ESLServer do
 
     {:noreply, state}
   end
+
+  def handle_info({:tcp, socket, "exit\n\n"}, state) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK bye\n\n"
+    )
+
+    {:noreply, state}
+  end
 end

@@ -21,6 +21,7 @@ defmodule Examples.InboundSocket do
 
         IO.puts("Bye")
         SwitchX.send_message(conn, uuid, message)
+        SwitchX.exit(conn)
 
         :ok
       {:error, term} -> "Error #{term}"
