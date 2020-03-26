@@ -170,6 +170,19 @@ defmodule SwitchX do
     send_message(conn, uuid, event)
   end
 
+  @doc """
+  The 'myevents' subscription allows your socket to receive all related events from a outbound socket session
+  """
+  @spec my_events(conn :: Pid) :: :ok | {:error, term}
+  def my_events(conn), do: my_events(conn, nil)
+
+  @doc """
+  The 'myevents' subscription allows your inbound socket connection to behave like an outbound socket connect.
+  It will "lock on" to the events for a particular uuid and will ignore all other events
+  """
+  @spec my_events(conn :: Pid, uuid :: String) :: :ok | {:error, term}
+  def my_events(conn, uuid), do: :gen_statem.call(conn, {:myevents, uuid})
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end

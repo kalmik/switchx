@@ -189,6 +189,27 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(:call, {:myevents, nil}, from, %{connection_mode: :inbound} = data) do
+    :gen_statem.reply(
+      from,
+      {:error, "UUID is required for inbound mode, see SwitchX.my_events/2."}
+    )
+
+    {:keep_state, data}
+  end
+
+  def ready(:call, {:myevents, nil}, from, data) do
+    :gen_tcp.send(data.socket, "myevents\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
+  def ready(:call, {:myevents, uuid}, from, data) do
+    :gen_tcp.send(data.socket, "myevents #{uuid}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(

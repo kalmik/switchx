@@ -155,7 +155,23 @@ defmodule SwitchX.Test.Mock.ESLServer do
     {:noreply, state}
   end
 
-  def handle_info({:tcp, _socket, "myevents\n\n"}, state), do: {:noreply, state}
+  def handle_info({:tcp, socket, "myevents\n\n"}, state) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK Events Enabled\n\n"
+    )
+
+    {:noreply, state}
+  end
+
+  def handle_info({:tcp, socket, "myevents UUID\n\n"}, state) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK Events Enabled\n\n"
+    )
+
+    {:noreply, state}
+  end
 
   def handle_info({:tcp, _socket, "event plain CHANNEL_EXECUTE_COMPLETE\n\n"}, state),
     do: {:noreply, state}

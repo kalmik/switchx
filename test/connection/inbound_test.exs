@@ -174,5 +174,20 @@ defmodule SwitchX.Test.Connection do
         assert event.headers["Application-UUID"] == event_uuid
       end
     end
+
+    test "my_events/1 error in inbound mod", context do
+      assert {:error, _term} = SwitchX.my_events(context.conn)
+    end
+
+    test "my_events/2", context do
+      assert {:ok,
+              %SwitchX.Event{
+                body: "",
+                headers: %{
+                  "Content-Type" => "command/reply",
+                  "Reply-Text" => "+OK Events Enabled"
+                }
+              }} = SwitchX.my_events(context.conn, "UUID")
+    end
   end
 end
