@@ -141,6 +141,35 @@ defmodule SwitchX do
     :gen_statem.call(conn, {:sendmsg, event})
   end
 
+  @doc """
+  execute is used to invoke dialplan applications,
+
+  ## Examples
+
+      iex> SwitchX.execute(conn, uuid, "playback", "ivr/ivr-welcome_to_freeswitch.wav")
+  """
+  @spec execute(conn :: Pid, uuid :: String, application :: String, args :: String) ::
+          event :: SwitchX.Event
+  def execute(conn, uuid, application, args) do
+    execute(conn, uuid, application, args, SwitchX.Event.new())
+  end
+
+  @spec execute(
+          conn :: Pid,
+          uuid :: String,
+          application :: String,
+          args :: String,
+          event :: SwitchX.Event
+        ) :: event :: SwitchX.Event
+  def execute(conn, uuid, application, arg, event) do
+    event = put_in(event.headers, Map.put(event.headers, "call-command", "execute"))
+    event = put_in(event.headers, Map.put(event.headers, "execute-app-name", application))
+    event = put_in(event.headers, Map.put(event.headers, "execute-app-arg", arg))
+    event = put_in(event.headers, Map.put(event.headers, "execute-app-arg", arg))
+    event = put_in(event.headers, Map.put(event.headers, "Event-UUID", UUID.uuid4()))
+    send_message(conn, uuid, event)
+  end
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end

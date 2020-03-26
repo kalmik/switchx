@@ -154,4 +154,22 @@ defmodule SwitchX.Test.Mock.ESLServer do
 
     {:noreply, state}
   end
+
+  def handle_info({:tcp, _socket, "myevents\n\n"}, state), do: {:noreply, state}
+
+  def handle_info({:tcp, _socket, "event plain CHANNEL_EXECUTE_COMPLETE\n\n"}, state),
+    do: {:noreply, state}
+
+  def handle_info(
+        {:tcp, socket,
+         "sendmsg UUID\nEvent-UUID: bc1bb1e6-2012-4c98-a4e9-4e50e248ae16\ncall-command: execute\nexecute-app-arg: ivr/ivr-welcome_to_freeswitch.wav\nexecute-app-name: playback\n\n"},
+        state
+      ) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: text/event-plain\nEvent-Name: CHANNEL_EXECUTE_COMPLETE\nApplication-UUID: bc1bb1e6-2012-4c98-a4e9-4e50e248ae16\n\n"
+    )
+
+    {:noreply, state}
+  end
 end

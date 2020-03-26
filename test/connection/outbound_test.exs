@@ -30,6 +30,6 @@ defmodule SwitchX.Test.Connection.Outbound do
   end
 
   test "Receive connected", %{sock: sock} do
-    assert_receive {:tcp, ^sock, "connect\n\n"}, 100
+    assert_receive {:tcp, ^sock, "connect\n\nmyevents\n\n"}, 100
   end
 end

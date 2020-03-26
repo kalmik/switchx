@@ -17,7 +17,8 @@ defmodule SwitchX.Connection do
     :connection_mode,
     :api_response_buffer,
     api_calls: :queue.new(),
-    commands_sent: :queue.new()
+    commands_sent: :queue.new(),
+    applications_pending: Map.new()
   ]
 
   def callback_mode() do
@@ -62,7 +63,8 @@ defmodule SwitchX.Connection do
 
     :inet.setopts(socket, active: :once)
 
-    :gen_tcp.send(socket, "connect\n\n")
+    # Subscribing all my events
+    :gen_tcp.send(socket, "connect\n\nmyevents\n\n")
 
     {:ok, :ready, data}
   end
@@ -143,18 +145,40 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(
+        :call,
+        {:sendmsg, uuid, %{headers: %{"Event-UUID" => event_uuid}} = event},
+        from,
+        data
+      ) do
+    :gen_tcp.send(data.socket, "sendmsg #{uuid}\n#{SwitchX.Event.dump(event)}\n\n")
+    data = put_in(data.applications_pending, Map.put(data.applications_pending, event_uuid, from))
+    {:keep_state, data}
+  end
+
   def ready(:call, {:sendmsg, uuid, event}, from, data) do
     :gen_tcp.send(data.socket, "sendmsg #{uuid}\n#{SwitchX.Event.dump(event)}\n\n")
     data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
     {:keep_state, data}
   end
 
-  def ready(:call, {:sendmsg, event}, from, %{connection_mode: :inbound} = data) do
+  def ready(:call, {:sendmsg, _event}, from, %{connection_mode: :inbound} = data) do
     :gen_statem.reply(
       from,
       {:error, "UUID is required for inbound mode, see SwitchX.send_message/3."}
     )
 
+    {:keep_state, data}
+  end
+
+  def ready(
+        :call,
+        {:sendmsg, %{headers: %{"Event-UUID" => event_uuid}} = event},
+        from,
+        %{connection_mode: :outbound} = data
+      ) do
+    :gen_tcp.send(data.socket, "sendmsg \n#{SwitchX.Event.dump(event)}\n\n")
+    data = put_in(data.applications_pending, Map.put(data.applications_pending, event_uuid, from))
     {:keep_state, data}
   end
 
@@ -186,6 +210,8 @@ defmodule SwitchX.Connection do
         %{headers: %{"Content-Type" => "command/reply", "Reply-Text" => "+OK accepted"}},
         data
       ) do
+    # Subscribing CHANNEL_EXECUTE_COMPLETE in order to handle correctly application responses
+    :gen_tcp.send(data.socket, "event plain CHANNEL_EXECUTE_COMPLETE\n\n")
     Logger.info("Connected")
     {:next_state, :ready, reply_from_queue("commands_sent", {:ok, "Accepted"}, data)}
   end
@@ -217,6 +243,20 @@ defmodule SwitchX.Connection do
 
   def ready(:event, %{headers: %{"Content-Type" => "command/reply"}} = event, data) do
     {:keep_state, reply_from_queue("commands_sent", {:ok, event}, data)}
+  end
+
+  def ready(
+        :event,
+        %{headers: %{"Event-Name" => "CHANNEL_EXECUTE_COMPLETE", "Application-UUID" => app_uuid}} =
+          event,
+        data
+      ) do
+    reply_to = Map.get(data.applications_pending, app_uuid)
+
+    unless is_nil(reply_to),
+      do: :gen_statem.reply(reply_to, event)
+
+    {:keep_state, data}
   end
 
   def ready(:event, event, data) do

@@ -36,6 +36,7 @@ defmodule SwitchX.MixProject do
   defp deps do
     [
       {:uuid, "~> 1.1"},
+      {:mock, "~> 0.3.0", only: :test},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false}
     ]
   end

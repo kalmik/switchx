@@ -1,6 +1,8 @@
 defmodule SwitchX.Test.Connection do
   use ExUnit.Case, async: false
 
+  import Mock
+
   alias SwitchX.{
     Connection
   }
@@ -158,6 +160,19 @@ defmodule SwitchX.Test.Connection do
                   "Reply-Text" => "+OK"
                 }
               }} = SwitchX.send_message(context.conn, "UUID", event)
+    end
+
+    test "execute/4", context do
+      event_uuid = "bc1bb1e6-2012-4c98-a4e9-4e50e248ae16"
+
+      with_mocks([
+        {UUID, [], [uuid4: fn -> "bc1bb1e6-2012-4c98-a4e9-4e50e248ae16" end]}
+      ]) do
+        event =
+          SwitchX.execute(context.conn, "UUID", "playback", "ivr/ivr-welcome_to_freeswitch.wav")
+
+        assert event.headers["Application-UUID"] == event_uuid
+      end
     end
   end
 end
