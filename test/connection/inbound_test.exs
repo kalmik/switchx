@@ -197,5 +197,14 @@ defmodule SwitchX.Test.Connection do
     test "exit/1", context do
       assert :ok = SwitchX.exit(context.conn)
     end
+
+    test "bg_api/3", context do
+      with_mocks([
+        {UUID, [], [uuid4: fn -> "f068ba99-ba58-459b-839a-18c969a4aad3" end]}
+      ]) do
+        assert {:ok, _event} =
+                 SwitchX.bg_api(context.conn, "expand originate ${verto_contact(200)} &park()")
+      end
+    end
   end
 end

@@ -227,6 +227,14 @@ defmodule SwitchX do
     end
   end
 
+  @doc """
+  Send a FreeSWITCH API command, non-blocking mode.
+  This will let you execute a job in the background, and the result will be sent as an BACKGROUND_JOB event
+  with an indicated UUID to match the reply to the command.
+  """
+  @spec bg_api(conn :: Pid, args :: String.Chars) :: {:ok, event :: SwitchX.Event}
+  def bg_api(conn, args), do: :gen_statem.call(conn, {:bgapi, args})
+
   def originate(conn, aleg, bleg, :expand) do
     perform_originate(conn, "expand originate #{aleg} #{bleg}")
   end

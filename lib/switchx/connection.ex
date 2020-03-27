@@ -199,6 +199,13 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def ready(:call, {:bgapi, args}, from, data) do
+    job_uuid = UUID.uuid4()
+    :gen_tcp.send(data.socket, "bgapi #{args}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(

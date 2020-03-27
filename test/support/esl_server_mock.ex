@@ -189,6 +189,18 @@ defmodule SwitchX.Test.Mock.ESLServer do
     {:noreply, state}
   end
 
+  def handle_info(
+        {:tcp, socket, "bgapi expand originate ${verto_contact(200)} &park()\n\n"},
+        state
+      ) do
+    :gen_tcp.send(
+      socket,
+      "Content-Type: command/reply\nReply-Text: +OK Job-UUID: f068ba99-ba58-459b-839a-18c969a4aad3\n\n"
+    )
+
+    {:noreply, state}
+  end
+
   def handle_info({:tcp, socket, "exit\n\n"}, state) do
     :gen_tcp.send(
       socket,
