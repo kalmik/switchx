@@ -15,7 +15,7 @@ defmodule Examples.InboundSocket.Listen do
     {:ok, state}
   end
 
-  def handle_info({:switchx_event, event, _socket}, state) do
+  def handle_info({:switchx_event, event}, state) do
     IO.inspect(event)
     {:noreply, state}
   end
