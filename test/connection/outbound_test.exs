@@ -18,7 +18,7 @@ defmodule SwitchX.Test.Connection.Outbound do
       )
 
     # Waiting for the server get ready
-    Process.sleep(1)
+    Process.sleep(1_000)
     host = {127, 0, 0, 1}
     port = 9998
     {:ok, sock} = :gen_tcp.connect(host, port, [:binary, active: :once, packet: :raw])

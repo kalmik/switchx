@@ -17,6 +17,7 @@ defmodule SwitchX.Test.Connection do
       ]
 
       SwitchX.Test.Mock.ESLServer.start_link(port)
+      Process.sleep(1_000)
       {:ok, client} = Connection.Inbound.start_link(connection_opts)
 
       {
@@ -48,6 +49,7 @@ defmodule SwitchX.Test.Connection do
       ]
 
       SwitchX.Test.Mock.ESLServer.start_link(port)
+      Process.sleep(1_000)
       {:ok, client} = Connection.Inbound.start_link(connection_opts)
       {:ok, "Accepted"} = SwitchX.auth(client, "ClueCon")
 
