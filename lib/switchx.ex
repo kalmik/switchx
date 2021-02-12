@@ -163,7 +163,6 @@ defmodule SwitchX do
     event = put_in(event.headers, Map.put(event.headers, "call-command", "execute"))
     event = put_in(event.headers, Map.put(event.headers, "execute-app-name", application))
     event = put_in(event.headers, Map.put(event.headers, "execute-app-arg", arg))
-    event = put_in(event.headers, Map.put(event.headers, "execute-app-arg", arg))
     event = put_in(event.headers, Map.put(event.headers, "Event-UUID", UUID.uuid4()))
     send_message(conn, uuid, event)
   end
