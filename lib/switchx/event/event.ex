@@ -91,7 +91,7 @@ defmodule SwitchX.Event do
   def dump(event) do
     h_part =
       Enum.map(event.headers, fn {h, v} ->
-        "#{h}: #{if is_binary(v), do: URI.encode(v), else: v}"
+        String.trim("#{h}: #{v}", "\n")
       end)
       |> Enum.join("\n")
 
