@@ -243,6 +243,20 @@ defmodule SwitchX do
     perform_originate(conn, "originate #{aleg} #{bleg}")
   end
 
+  def multiset(conn, variables) when is_binary(variables) do
+    execute(conn, nil, "multiset", variables)
+  end
+
+  def playback(conn, file), do: playback(conn, file, nil)
+  def playback(conn, file, uuid) do
+    SwitchX.execute(conn, uuid, "playback", file)
+  end
+
+  def playback_async(conn, file), do: playback_async(conn, file, nil)
+  def playback_async(conn, file, uuid) do
+    Task.start(fn -> playback(conn, file, uuid) end)
+  end
+
   defp perform_originate(conn, command) do
     {:ok, response} = api(conn, command)
 
