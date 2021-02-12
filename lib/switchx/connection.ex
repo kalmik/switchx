@@ -132,7 +132,7 @@ defmodule SwitchX.Connection do
 
   def ready(:call, {:listen_event, event_name}, from, data) do
     :gen_tcp.send(data.socket, "event plain #{event_name}\n\n")
-    :gen_statem.reply(from, :ok)
+    :gen_statem.reply(from, {:ok, "Listening #{event_name}"})
     {:keep_state, data}
   end
 
@@ -148,6 +148,10 @@ defmodule SwitchX.Connection do
         nil -> event
         uuid -> put_in(event.headers["unique-id"], uuid)
       end
+
+    event =  put_in(event.headers, Map.merge(event.headers, %{
+      "Event-Name" => event_name
+    }))
 
     :gen_tcp.send(data.socket, "sendevent #{event_name}\n#{SwitchX.Event.dump(event)}\n\n")
     data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
