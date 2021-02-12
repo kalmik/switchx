@@ -16,6 +16,7 @@ defmodule SwitchX.Connection do
     :socket,
     :connection_mode,
     :api_response_buffer,
+    :session_module,
     api_calls: :queue.new(),
     commands_sent: :queue.new(),
     applications_pending: Map.new()
@@ -51,22 +52,19 @@ defmodule SwitchX.Connection do
 
   def init([session_module, socket, :outbound]) when is_port(socket) do
     {:ok, {host, port}} = :inet.peername(socket)
-    {:ok, owner} = apply(session_module, :start_link, [self()])
 
     data = %__MODULE__{
       host: host,
       port: port,
-      owner: owner,
+      owner: nil,
       socket: socket,
-      connection_mode: :outbound
+      connection_mode: :outbound,
+      session_module: session_module
     }
 
-    :inet.setopts(socket, active: :once)
+    send(self(), :read_data)
 
-    # Subscribing all my events
-    :gen_tcp.send(socket, "connect\n\nmyevents\n\n")
-
-    {:ok, :ready, data}
+    {:ok, :connecting, data}
   end
 
   ## Handler events ##
@@ -78,6 +76,17 @@ defmodule SwitchX.Connection do
   def handle_event(:info, {:tcp, _socket, "\n"}, _state, data) do
     # Empty line discarding
     {:keep_state, data}
+  end
+
+  def handle_event(:info, :read_data, :connecting, data) do
+    :gen_tcp.send(data.socket, "connect\n\n")
+    event = Socket.recv(data.socket)
+
+    {:ok, owner} = apply(data.session_module, :start_link, [self(), event])
+    data = put_in(data.owner, owner)
+
+    :inet.setopts(data.socket, active: :once)
+    {:next_state, :ready, data}
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
