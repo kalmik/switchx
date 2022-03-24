@@ -11,7 +11,7 @@ Documentation can be found at [https://hexdocs.pm/switchx](https://hexdocs.pm/sw
 ```elixir
 def deps do
   [
-    {:switchx, "~> 0.1.0"}
+    {:switchx, "~> 0.1.1"}
   ]
 end
 ```
