@@ -91,10 +91,15 @@ defmodule SwitchX.Event do
   def dump(event) do
     h_part =
       Enum.map(event.headers, fn {h, v} ->
-        String.trim("#{h}: #{v}", "\n")
+        String.trim("#{h}: #{URI.encode("#{v}")}", "\n")
       end)
       |> Enum.join("\n")
 
-    String.trim("#{h_part}\n\n#{event.body}", "\n\n")
+    case event.body do
+      nil -> "#{h_part}\n\n"
+      "" -> "#{h_part}\n\n"
+      body -> "#{h_part}\n\n#{URI.encode(body)}"
+    end
+    |> String.trim("\n\n")
   end
 end

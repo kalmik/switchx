@@ -1,4 +1,4 @@
-defmodule SwitchX.Test.Connection do
+defmodule SwitchX.Test.Connection.Inbound do
   use ExUnit.Case, async: false
 
   import Mock
@@ -52,7 +52,7 @@ defmodule SwitchX.Test.Connection do
       Process.sleep(1_000)
       {:ok, client} = Connection.Inbound.start_link(connection_opts)
       {:ok, "Accepted"} = SwitchX.auth(client, "ClueCon")
-
+      Process.sleep(1_000)
       {
         :ok,
         conn: client
@@ -72,7 +72,7 @@ defmodule SwitchX.Test.Connection do
     end
 
     test "parse background_job event", context do
-      assert :ok = SwitchX.listen_event(context.conn, "BACKGROUND_JOB")
+      assert {:ok, "Listening BACKGROUND_JOB"} = SwitchX.listen_event(context.conn, "BACKGROUND_JOB")
       assert_receive {:switchx_event, _event}, 100
     end
 
@@ -113,7 +113,7 @@ defmodule SwitchX.Test.Connection do
     test "send_event/4 attach event uuid", context do
       event_headers =
         SwitchX.Event.Headers.new(%{
-          profile: "external",
+          "profile": "external",
           "content-type": "text/plain",
           "to-uri": "sip:1@2.3.4.5",
           "from-uri": "sip:1@1.2.3.4",

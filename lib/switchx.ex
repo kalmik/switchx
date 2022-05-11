@@ -185,17 +185,25 @@ defmodule SwitchX do
   """
   @spec exit(conn :: Pid) :: :ok | {:error, term}
   def exit(conn) do
-    {:ok, event} = :gen_statem.call(conn, {:exit})
+    case :gen_statem.call(conn, {:exit}) do
+      {:ok, event} ->
+        reply =
+          event.headers["Reply-Text"]
+          |> String.trim("\n")
+          |> String.split(" ", parts: 2)
 
-    reply =
-      event.headers["Reply-Text"]
-      |> String.trim("\n")
-      |> String.split(" ", parts: 2)
-
-    case reply do
-      ["-ERR", term] -> {:error, term}
-      ["+OK", _] -> :ok
+        case reply do
+          ["-ERR", term] -> {:error, term}
+          ["+OK", _] -> :ok
+        end
+      {:error, :disconnected} -> :ok
+      _ -> {:error, :unknown}
     end
+  end
+
+  def close(conn) do
+    __MODULE__.exit(conn)
+    :gen_statem.call(conn, {:close})
   end
 
   @doc """

@@ -37,6 +37,34 @@ defmodule SwitchX.Test.Mock.ESLServer do
     {:noreply, state}
   end
 
+  def handle_cast(:send_disconnect_linger, state) do
+    event = """
+    Content-Type: text/disconnect-notice
+    Content-Disposition: linger
+    Content-Length: 67
+
+    Disconnected, goodbye.
+    See you at ClueCon! http://www.cluecon.com/
+    """
+
+    :gen_tcp.send(state.socket, event)
+    {:noreply, state}
+  end
+
+
+  def handle_cast(:send_disconnect, state) do
+    event = """
+    Content-Type: text/disconnect-notice
+    Content-Length: 67
+
+    Disconnected, goodbye.
+    See you at ClueCon! http://www.cluecon.com/
+    """
+
+    :gen_tcp.send(state.socket, event)
+    {:noreply, state}
+  end
+
   def handle_info({:tcp, socket, "auth ClueCon\n\n"}, state) do
     :gen_tcp.send(socket, "Content-Type: command/reply\nReply-Text: +OK accepted\n\n")
     {:noreply, state}
@@ -119,7 +147,7 @@ defmodule SwitchX.Test.Mock.ESLServer do
 
   def handle_info(
         {:tcp, socket,
-         "sendevent SEND_INFO\ncontent-length: 15\ncontent-type: text/plain\nfrom-uri: sip:1@1.2.3.4\nprofile: external\nto-uri: sip:1@2.3.4.5\n\ntest\n\n"},
+         "sendevent SEND_INFO\ncontent-length: 15\ncontent-type: text/plain\nfrom-uri: sip:1@1.2.3.4\nprofile: external\nto-uri: sip:1@2.3.4.5\nEvent-Name: SEND_INFO\n\ntest\n\n"},
         state
       ) do
     :gen_tcp.send(
@@ -132,7 +160,7 @@ defmodule SwitchX.Test.Mock.ESLServer do
 
   def handle_info(
         {:tcp, socket,
-         "sendevent SEND_INFO\ncontent-length: 15\ncontent-type: text/plain\nfrom-uri: sip:1@1.2.3.4\nprofile: external\nto-uri: sip:1@2.3.4.5\nunique-id: 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\ntest\n\n"},
+         "sendevent SEND_INFO\ncontent-length: 15\ncontent-type: text/plain\nfrom-uri: sip:1@1.2.3.4\nprofile: external\nto-uri: sip:1@2.3.4.5\nEvent-Name: SEND_INFO\nunique-id: 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n\ntest\n\n"},
         state
       ) do
     :gen_tcp.send(

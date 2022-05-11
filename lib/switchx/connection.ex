@@ -69,6 +69,12 @@ defmodule SwitchX.Connection do
 
   ## Handler events ##
 
+  def handle_event({:call, from}, {:close}, state, data) do
+    :gen_tcp.close(data.socket)
+    :gen_statem.reply(from, :ok)
+    {:next_state, :disconnected, data}
+  end
+
   def handle_event({:call, from}, message, state, data) do
     apply(__MODULE__, state, [:call, message, from, data])
   end
@@ -92,11 +98,29 @@ defmodule SwitchX.Connection do
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
     event = Socket.recv(socket, payload)
     :inet.setopts(socket, active: :once)
-    apply(__MODULE__, state, [:event, event, data])
+
+    content_type = event.headers["Content-Type"]
+    # Parsing disconnect for any state
+    case content_type do
+      "text/disconnect-notice" -> handle_event(:disconnect, event, state, data)
+      ^content_type -> apply(__MODULE__, state, [:event, event, data])
+    end
   end
 
   def handle_event(:info, _message, _state, data) do
     {:keep_state, data}
+  end
+
+  def handle_event(:disconnect, event, state, data) do
+    case event.headers["Content-Disposition"] do
+      "linger" ->
+        Logger.info("Disconnect hold due to linger, keeping state #{inspect state}")
+        {:keep_state, data}
+      _disposition ->
+        Logger.info("Disconnect received, closing socket.")
+        :gen_tcp.close(data.socket)
+        {:next_state, :disconnected, data}
+    end
   end
 
   ## CALL STATE FUNCTIONS ##
@@ -219,6 +243,11 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
+  def disconnected(:call, payload, from, data) do
+    :gen_statem.reply(from, {:error, :disconnected})
+    {:keep_state, data}
+  end
+
   ## Event STATE FUNCTIONS ##
 
   def connecting(
@@ -255,10 +284,6 @@ defmodule SwitchX.Connection do
     {:next_state, :disconnected, reply_from_queue("commands_sent", {:error, "Denied"}, data)}
   end
 
-  def disconnected(:event, %{headers: %{"Content-Type" => "text/disconnect-notice"}}, data) do
-    {:keep_state, data}
-  end
-
   def ready(
         :event,
         %{headers: %{"Content-Type" => "command/reply", "Reply-Text" => "+OK will linger"}},
@@ -291,6 +316,14 @@ defmodule SwitchX.Connection do
 
   def ready(:event, event, data) do
     send(data.owner, {:switchx_event, event})
+    {:keep_state, data}
+  end
+
+  def disconnected(:event, %{headers: %{"Content-Type" => "text/disconnect-notice"}}, data) do
+    {:keep_state, data}
+  end
+
+  def disconnected(:event, payload, data) do
     {:keep_state, data}
   end
 

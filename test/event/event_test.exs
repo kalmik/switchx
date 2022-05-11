@@ -96,11 +96,11 @@ defmodule SwitchX.Event.Test do
     Job-Command-Arg: sofia/default/1005%20'&park'
     Job-UUID: 7f4db78a-17d7-11dd-b7a0-db4edd065621
 
-    +OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621
+    +OK%207f4de4bc-17d7-11dd-b7a0-db4edd065621
     """
 
     event = %SwitchX.Event{
-      body: "+OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621\n",
+      body: "+OK 7f4de4bc-17d7-11dd-b7a0-db4edd065621",
       headers: %{
         "Content-Length" => 41,
         "Content-Type" => "text/event-plain",
@@ -121,6 +121,6 @@ defmodule SwitchX.Event.Test do
       }
     }
 
-    assert message == SwitchX.Event.dump(event)
+    assert String.trim(message) == SwitchX.Event.dump(event)
   end
 end
