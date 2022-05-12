@@ -7,16 +7,16 @@ defmodule SwitchX.Event do
   ## Access CALLBACKS ##
 
   def fetch(body, key),
-      do: Map.fetch(body.headers, key)
+    do: Map.fetch(body.headers, key)
 
   def get(body, key, default),
-      do: Map.get(body.headers, key, default)
+    do: Map.get(body.headers, key, default)
 
   def get_and_update(body, key, fun),
-      do: Map.get(body.headers, key, fun)
+    do: Map.get(body.headers, key, fun)
 
   def pop(body, key),
-      do: Map.get(body.headers, key)
+    do: Map.get(body.headers, key)
 
   @spec new() :: SwitchX.Event
   def new(), do: %__MODULE__{}

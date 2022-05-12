@@ -3,16 +3,19 @@ defmodule SwitchX.Test.Connection do
 
   alias SwitchX.{
     Connection
-    }
+  }
 
   defp assert_not_called(module, func) do
     call_history = :meck.history(module)
+
     assert Enum.filter(call_history, fn
-      {_pid, {^module, ^func, _args}, _res} -> true
-      _ -> false
-    end)
-    |> Enum.count() == 0,
-    "#{module} #{func} is not expected to be called.\nCall History\n#{inspect call_history}"
+             {_pid, {^module, ^func, _args}, _res} -> true
+             _ -> false
+           end)
+           |> Enum.count() == 0,
+           "#{module} #{func} is not expected to be called.\nCall History\n#{
+             inspect(call_history)
+           }"
   end
 
   describe "Handling call" do
@@ -22,7 +25,9 @@ defmodule SwitchX.Test.Connection do
 
       from = {self(), make_ref()}
       initial_state = %Connection{}
-      {action, state, _data} = Connection.handle_event({:call, from}, {:close}, :any, initial_state)
+
+      {action, state, _data} =
+        Connection.handle_event({:call, from}, {:close}, :any, initial_state)
 
       assert :meck.called(:gen_tcp, :close, :_)
       assert action == :next_state
@@ -30,7 +35,6 @@ defmodule SwitchX.Test.Connection do
 
       :meck.unload(:gen_tcp)
     end
-
   end
 
   describe "Handling disconnect incoming event" do
@@ -49,8 +53,7 @@ defmodule SwitchX.Test.Connection do
 
       {
         :ok,
-        server: server,
-        client: client
+        server: server, client: client
       }
     end
 
@@ -82,5 +85,4 @@ defmodule SwitchX.Test.Connection do
       :meck.unload(:gen_tcp)
     end
   end
-
 end

@@ -51,7 +51,6 @@ defmodule SwitchX.Test.Mock.ESLServer do
     {:noreply, state}
   end
 
-
   def handle_cast(:send_disconnect, state) do
     event = """
     Content-Type: text/disconnect-notice

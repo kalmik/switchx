@@ -114,8 +114,9 @@ defmodule SwitchX.Connection do
   def handle_event(:disconnect, event, state, data) do
     case event.headers["Content-Disposition"] do
       "linger" ->
-        Logger.info("Disconnect hold due to linger, keeping state #{inspect state}")
+        Logger.info("Disconnect hold due to linger, keeping state #{inspect(state)}")
         {:keep_state, data}
+
       _disposition ->
         Logger.info("Disconnect received, closing socket.")
         :gen_tcp.close(data.socket)
@@ -173,9 +174,13 @@ defmodule SwitchX.Connection do
         uuid -> put_in(event.headers["unique-id"], uuid)
       end
 
-    event =  put_in(event.headers, Map.merge(event.headers, %{
-      "Event-Name" => event_name
-    }))
+    event =
+      put_in(
+        event.headers,
+        Map.merge(event.headers, %{
+          "Event-Name" => event_name
+        })
+      )
 
     :gen_tcp.send(data.socket, "sendevent #{event_name}\n#{SwitchX.Event.dump(event)}\n\n")
     data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))

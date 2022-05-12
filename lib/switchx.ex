@@ -196,8 +196,12 @@ defmodule SwitchX do
           ["-ERR", term] -> {:error, term}
           ["+OK", _] -> :ok
         end
-      {:error, :disconnected} -> :ok
-      _ -> {:error, :unknown}
+
+      {:error, :disconnected} ->
+        :ok
+
+      _ ->
+        {:error, :unknown}
     end
   end
 
@@ -255,11 +259,13 @@ defmodule SwitchX do
   end
 
   def playback(conn, file), do: playback(conn, file, nil)
+
   def playback(conn, file, uuid) do
     SwitchX.execute(conn, uuid, "playback", file)
   end
 
   def playback_async(conn, file), do: playback_async(conn, file, nil)
+
   def playback_async(conn, file, uuid) do
     Task.start(fn -> playback(conn, file, uuid) end)
   end
