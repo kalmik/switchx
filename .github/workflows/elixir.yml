@@ -8,6 +8,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install openssl&libssl-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openssl libssl1.1
+    - name: Display openssl&libssl-dev versions
+      run: dpkg -l openssl libssl-dev | grep '^ii' | cut -c5-
     - uses: actions/checkout@v2
     - name: Setup elixir
       uses: actions/setup-elixir@v1
