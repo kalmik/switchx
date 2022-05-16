@@ -205,9 +205,14 @@ defmodule SwitchX do
     end
   end
 
+  @doc """
+    Closes the connection (conn) and stop the socket
+  """
+  @spec close(conn :: Pid) :: :ok | {:error, term}
   def close(conn) do
     __MODULE__.exit(conn)
-    :gen_statem.call(conn, {:close})
+    ret = :gen_statem.call(conn, {:close})
+    GenServer.stop(conn)
   end
 
   @doc """

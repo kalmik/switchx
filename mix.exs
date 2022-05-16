@@ -39,7 +39,7 @@ defmodule SwitchX.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :telemetry,]
     ]
   end
 
@@ -48,6 +48,7 @@ defmodule SwitchX.MixProject do
     [
       {:uuid, "~> 1.1"},
       {:mock, "~> 0.3.0", only: :test},
+      {:telemetry, "~> 0.4.2"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false}
     ]
   end

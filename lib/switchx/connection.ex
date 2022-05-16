@@ -3,7 +3,6 @@ defmodule SwitchX.Connection do
 
   @behaviour :gen_statem
   require Logger
-
   alias SwitchX.Connection.{
     Socket
   }
@@ -46,7 +45,7 @@ defmodule SwitchX.Connection do
     }
 
     :inet.setopts(socket, active: :once)
-
+    post_init(data)
     {:ok, :connecting, data}
   end
 
@@ -63,8 +62,13 @@ defmodule SwitchX.Connection do
     }
 
     send(self(), :read_data)
-
+    post_init(data)
     {:ok, :connecting, data}
+  end
+
+  defp post_init(data) do
+    Logger.info("SwitchX #{inspect self()} Starting.")
+    :telemetry.execute([:switchx, :connection, data.connection_mode], %{value: 1}, %{})
   end
 
   ## Handler events ##
@@ -120,6 +124,7 @@ defmodule SwitchX.Connection do
       _disposition ->
         Logger.info("Disconnect received, closing socket.")
         :gen_tcp.close(data.socket)
+        :telemetry.execute([:switchx, :connection, data.connection_mode], %{value: 1}, %{})
         {:next_state, :disconnected, data}
     end
   end
@@ -330,6 +335,13 @@ defmodule SwitchX.Connection do
 
   def disconnected(:event, payload, data) do
     {:keep_state, data}
+  end
+
+  @impl true
+  def terminate(reason, _state, data) do
+    :telemetry.execute([:switchx, :connection, data.connection_mode], %{value: -1}, %{})
+    Logger.info("SwitchX #{inspect self()} Finishing. #{inspect reason}")
+    :ok
   end
 
   ## HELPERS ##
