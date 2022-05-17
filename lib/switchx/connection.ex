@@ -124,7 +124,6 @@ defmodule SwitchX.Connection do
       _disposition ->
         Logger.info("Disconnect received, closing socket.")
         :gen_tcp.close(data.socket)
-        :telemetry.execute([:switchx, :connection, data.connection_mode], %{value: 1}, %{})
         {:next_state, :disconnected, data}
     end
   end
