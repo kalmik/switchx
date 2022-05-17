@@ -211,8 +211,8 @@ defmodule SwitchX do
   @spec close(conn :: Pid) :: :ok | {:error, term}
   def close(conn) do
     __MODULE__.exit(conn)
-    ret = :gen_statem.call(conn, {:close})
-    GenServer.stop(conn)
+    :gen_statem.call(conn, {:close})
+    :gen_statem.stop(conn, :normal, 1_000)
   end
 
   @doc """
