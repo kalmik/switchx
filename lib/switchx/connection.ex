@@ -278,8 +278,6 @@ defmodule SwitchX.Connection do
         %{headers: %{"Content-Type" => "command/reply", "Reply-Text" => "+OK accepted"}},
         data
       ) do
-    # Subscribing CHANNEL_EXECUTE_COMPLETE in order to handle correctly application responses
-    :gen_tcp.send(data.socket, "event plain CHANNEL_EXECUTE_COMPLETE\n\n")
     Logger.info("Connected")
     {:next_state, :ready, reply_from_queue("commands_sent", {:ok, "Accepted"}, data)}
   end
