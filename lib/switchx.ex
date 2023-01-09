@@ -1,5 +1,6 @@
 defmodule SwitchX do
   ## API ##
+  require Logger
 
   @doc """
   Tells FreeSWITCH not to close the socket connection when a channel hangs up.
@@ -252,11 +253,15 @@ defmodule SwitchX do
   def bg_api(conn, args), do: :gen_statem.call(conn, {:bgapi, args})
 
   def originate(conn, aleg, bleg, :expand) do
-    perform_originate(conn, "expand originate #{aleg} #{bleg}")
+    originate_function = Application.get_env(:switchx, :originate_function, "originate")
+    Logger.debug("Using originate function #{originate_function}")
+    perform_originate(conn, "expand #{originate_function} #{aleg} #{bleg}")
   end
 
   def originate(conn, aleg, bleg) do
-    perform_originate(conn, "originate #{aleg} #{bleg}")
+    originate_function = Application.get_env(:switchx, :originate_function, "originate")
+    Logger.debug("Using originate function #{originate_function}")
+    perform_originate(conn, "#{originate_function} #{aleg} #{bleg}")
   end
 
   def multiset(conn, variables) when is_binary(variables) do
