@@ -253,15 +253,23 @@ defmodule SwitchX do
   def bg_api(conn, args), do: :gen_statem.call(conn, {:bgapi, args})
 
   def originate(conn, aleg, bleg, :expand) do
+    originate(conn, "#{aleg} #{bleg}", :expand)
+  end
+
+  def originate(conn, args, :expand) do
     originate_function = Application.get_env(:switchx, :originate_function, "originate")
     Logger.debug("Using originate function #{originate_function}")
-    perform_originate(conn, "expand #{originate_function} #{aleg} #{bleg}")
+    perform_originate(conn, "expand #{originate_function} #{args}")
   end
 
   def originate(conn, aleg, bleg) do
+    originate(conn, "#{aleg} #{bleg}")
+  end
+
+  def originate(conn, args) do
     originate_function = Application.get_env(:switchx, :originate_function, "originate")
     Logger.debug("Using originate function #{originate_function}")
-    perform_originate(conn, "#{originate_function} #{aleg} #{bleg}")
+    perform_originate(conn, "#{originate_function} #{args}")
   end
 
   def multiset(conn, variables) when is_binary(variables) do
