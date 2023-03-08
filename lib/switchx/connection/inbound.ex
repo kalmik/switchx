@@ -41,16 +41,10 @@ defmodule SwitchX.Connection.Inbound do
   end
 
   defp perform_connect(host, port, socket_opts, timeout) when is_binary(host) do
-    host =
-      host
-      |> String.split(".")
-      |> Enum.map(&String.to_integer/1)
-      |> List.to_tuple()
-
-    perform_connect(host, port, socket_opts, timeout)
+    perform_connect(String.to_charlist(host), port, socket_opts, timeout)
   end
 
-  defp perform_connect(host, port, socket_opts, timeout) when is_tuple(host) do
+  defp perform_connect(host, port, socket_opts, timeout) when is_tuple(host) or is_list(host) do
     :gen_tcp.connect(host, port, socket_opts, timeout)
   end
 end
