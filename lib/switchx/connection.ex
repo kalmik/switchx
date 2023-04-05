@@ -100,7 +100,9 @@ defmodule SwitchX.Connection do
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
+    Logger.info("SwitchX Received data: #{inspect payload}")
     event = Socket.recv(socket, payload)
+    Logger.info("SwitchX Received data after recv: #{inspect payload}")
     :inet.setopts(socket, active: :once)
 
     content_type = event.headers["Content-Type"]
