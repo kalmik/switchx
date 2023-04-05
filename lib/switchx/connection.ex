@@ -83,11 +83,6 @@ defmodule SwitchX.Connection do
     apply(__MODULE__, state, [:call, message, from, data])
   end
 
-  def handle_event(:info, {:tcp, _socket, "\n"}, _state, data) do
-    # Empty line discarding
-    {:keep_state, data}
-  end
-
   def handle_event(:info, :read_data, :connecting, data) do
     :gen_tcp.send(data.socket, "connect\n\n")
     event = Socket.recv(data.socket)
@@ -97,6 +92,11 @@ defmodule SwitchX.Connection do
 
     :inet.setopts(data.socket, active: :once)
     {:next_state, :ready, data}
+  end
+
+  def handle_event(:info, {:tcp, _socket, "\n"}, _state, data) do
+    # Empty line discarding
+    {:keep_state, data}
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
@@ -161,7 +161,9 @@ defmodule SwitchX.Connection do
 
   def ready(:call, {:api, args}, from, data) do
     data = put_in(data.api_calls, :queue.in(from, data.api_calls))
-    :gen_tcp.send(data.socket, "api #{args}\n\n")
+    api_cmd = "api #{args}\n\n"
+    Logger.info("SwitchX Sending API command: #{inspect api_cmd}")
+    :gen_tcp.send(data.socket, api_cmd)
     {:keep_state, data}
   end
 
