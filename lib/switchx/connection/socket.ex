@@ -9,11 +9,13 @@ defmodule SwitchX.Connection.Socket do
   """
   @spec recv(socket :: Port, payload :: String) :: switchx_event
   def recv(socket, payload \\ "") when is_binary(payload) do
-    :inet.setopts(socket, packet: :line)
+    # :inet.setopts(socket, packet: :line)
 
-    case :gen_tcp.recv(socket, 0, 1_000) do
+    case :gen_tcp.recv(socket, 0) do
+    # case :gen_tcp.recv(socket, 0, 1_000) do
       # Socket has closed, parsing data until now
       {:error, :closed} ->
+        Logger.info("SwitchXSock closed with payload: #{inspect payload}")
         SwitchX.Event.new(payload)
 
       # Initial header fully read, parsing event
