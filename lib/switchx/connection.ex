@@ -102,14 +102,18 @@ defmodule SwitchX.Connection do
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
     Logger.info("SwitchX Received data: #{inspect payload}")
     event = Socket.recv(socket, payload)
-    Logger.info("SwitchX Received data after recv: #{inspect payload}")
+    Logger.info("SwitchX Received data after recv: #{inspect payload} e: #{inspect event}")
     :inet.setopts(socket, active: :once)
 
     content_type = event.headers["Content-Type"]
     # Parsing disconnect for any state
     case content_type do
-      "text/disconnect-notice" -> handle_event(:disconnect, event, state, data)
-      ^content_type -> apply(__MODULE__, state, [:event, event, data])
+      "text/disconnect-notice" ->
+        Logger.info("SwitchX Received disconnect!")
+        handle_event(:disconnect, event, state, data)
+      ^content_type ->
+        Logger.info("SwitchX content-type: #{inspect content_type}")
+        apply(__MODULE__, state, [:event, event, data])
     end
   end
 
