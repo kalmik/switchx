@@ -100,7 +100,7 @@ defmodule SwitchX.Connection do
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
-    Logger.info("SwitchX Received data: #{inspect payload}")
+    Logger.info("SwitchX Received raw payload: #{inspect payload}")
     event = Socket.recv(socket, payload)
     Logger.info("SwitchX Received data after recv: #{inspect payload} e: #{inspect event}")
     :inet.setopts(socket, active: :once)
@@ -161,9 +161,9 @@ defmodule SwitchX.Connection do
 
   def ready(:call, {:api, args}, from, data) do
     data = put_in(data.api_calls, :queue.in(from, data.api_calls))
-    api_cmd = "api #{args}\n\n"
-    Logger.info("SwitchX Sending API command: #{inspect api_cmd}")
-    :gen_tcp.send(data.socket, api_cmd)
+    # api_cmd = "api #{args}\n\n"
+    # Logger.info("SwitchX Sending API command: #{inspect api_cmd}")
+    :gen_tcp.send(data.socket, "api #{args}\n\n")
     {:keep_state, data}
   end
 
