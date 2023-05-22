@@ -21,6 +21,7 @@ defmodule SwitchX.Connection do
     applications_pending: Map.new()
   ]
 
+  @impl true
   def callback_mode() do
     :handle_event_function
   end
@@ -33,6 +34,7 @@ defmodule SwitchX.Connection do
     :gen_statem.start_link(__MODULE__, [session_module, socket, :outbound], [])
   end
 
+  @impl true
   def init([owner, socket, :inbound]) when is_port(socket) do
     {:ok, {host, port}} = :inet.peername(socket)
 
@@ -73,7 +75,8 @@ defmodule SwitchX.Connection do
 
   ## Handler events ##
 
-  def handle_event({:call, from}, {:close}, state, data) do
+  @impl true
+  def handle_event({:call, from}, {:close}, _state, data) do
     :gen_tcp.close(data.socket)
     :gen_statem.reply(from, :ok)
     {:next_state, :disconnected, data}
@@ -100,9 +103,9 @@ defmodule SwitchX.Connection do
   end
 
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
-    Logger.info("SwitchX Received raw payload: #{inspect payload}")
+    # Logger.info("SwitchX Received raw payload: #{inspect payload}")
     event = Socket.recv(socket, payload)
-    Logger.info("SwitchX Received data after recv: #{inspect payload} e: #{inspect event}")
+    # Logger.info("SwitchX Received data after recv: #{inspect payload} e: #{inspect event}")
     :inet.setopts(socket, active: :once)
 
     content_type = event.headers["Content-Type"]
@@ -254,13 +257,13 @@ defmodule SwitchX.Connection do
   end
 
   def ready(:call, {:bgapi, args}, from, data) do
-    job_uuid = UUID.uuid4()
+    #job_uuid = UUID.uuid4()
     :gen_tcp.send(data.socket, "bgapi #{args}\n\n")
     data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
     {:keep_state, data}
   end
 
-  def disconnected(:call, payload, from, data) do
+  def disconnected(:call, _payload, from, data) do
     :gen_statem.reply(from, {:error, :disconnected})
     {:keep_state, data}
   end
@@ -338,7 +341,7 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  def disconnected(:event, payload, data) do
+  def disconnected(:event, _payload, data) do
     {:keep_state, data}
   end
 

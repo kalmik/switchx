@@ -5,18 +5,18 @@ defmodule SwitchX.Test.Connection do
     Connection
   }
 
-  defp assert_not_called(module, func) do
-    call_history = :meck.history(module)
+  # defp assert_not_called(module, func) do
+  #   call_history = :meck.history(module)
 
-    assert Enum.filter(call_history, fn
-             {_pid, {^module, ^func, _args}, _res} -> true
-             _ -> false
-           end)
-           |> Enum.count() == 0,
-           "#{module} #{func} is not expected to be called.\nCall History\n#{
-             inspect(call_history)
-           }"
-  end
+  #   assert Enum.filter(call_history, fn
+  #            {_pid, {^module, ^func, _args}, _res} -> true
+  #            _ -> false
+  #          end)
+  #          |> Enum.count() == 0,
+  #          "#{module} #{func} is not expected to be called.\nCall History\n#{
+  #            inspect(call_history)
+  #          }"
+  # end
 
   describe "Handling call" do
     test "calling close" do
