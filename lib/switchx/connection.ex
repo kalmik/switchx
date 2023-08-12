@@ -115,7 +115,7 @@ defmodule SwitchX.Connection do
         Logger.info("SwitchX Received disconnect!")
         handle_event(:disconnect, event, state, data)
       ^content_type ->
-        Logger.info("SwitchX content-type: #{inspect content_type}")
+        # Logger.info("SwitchX content-type: #{inspect content_type}")
         apply(__MODULE__, state, [:event, event, data])
     end
   end
@@ -133,7 +133,7 @@ defmodule SwitchX.Connection do
       _disposition ->
         Logger.info("Disconnect received, closing socket.")
         :gen_tcp.close(data.socket)
-        {:next_state, :disconnected, data}
+        {:stop, :disconnected}
     end
   end
 
