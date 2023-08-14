@@ -6,7 +6,7 @@ defmodule SwitchX.Connection.Inbound do
   and connect to the FreeSWITCH server to invoke commands and control FreeSWITCH.
   """
   @mode :inbound
-  @socket_opts [:binary, active: :once, packet: :line]
+  @socket_opts [:binary, active: :once, packet: :line, keepalive: true]
   @timeout 5_000
 
   @doc """
