@@ -170,7 +170,13 @@ defmodule SwitchX.Connection do
 
   def ready(:call, {:listen_event, event_name}, from, data) do
     :gen_tcp.send(data.socket, "event plain #{event_name}\n\n")
-    :gen_statem.reply(from, {:ok, "Listening #{event_name}"})
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
+  def ready(:call, {:filter, args}, from, data) do
+    :gen_tcp.send(data.socket, "filter #{args}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
     {:keep_state, data}
   end
 
