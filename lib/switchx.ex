@@ -71,10 +71,32 @@ defmodule SwitchX do
   ## Examples
 
       iex> SwitchX.listen_event(conn, "BACKGROUND_JOB")
-      :ok
+      {:ok, %SwitchX.Event{}}
   """
   @spec listen_event(conn :: Pid, event_name :: String) :: :ok
   def listen_event(conn, event_name), do: :gen_statem.call(conn, {:listen_event, event_name})
+
+  @doc """
+  Send an event into the event system (multi line input for headers).
+  ```
+  sendevent <event-name>
+  <headers>
+
+  <body>
+  ```
+
+  Returns
+  ```
+    {:ok, term}
+  ```
+
+  ## Examples
+
+      iex> SwitchX.filter(conn, "Event-Name CHANNEL_EXECUTE")
+      {:ok, %SwitchX.Event{}}
+  """
+  @spec filter(conn :: Pid, args :: String) :: {:ok, any()}
+  def filter(conn, args), do: :gen_statem.call(conn, {:filter, args})
 
   @doc """
   Send an event into the event system (multi line input for headers).

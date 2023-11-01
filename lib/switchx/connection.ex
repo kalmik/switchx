@@ -21,6 +21,7 @@ defmodule SwitchX.Connection do
     applications_pending: Map.new()
   ]
 
+  @impl true
   def callback_mode() do
     :handle_event_function
   end
@@ -33,6 +34,7 @@ defmodule SwitchX.Connection do
     :gen_statem.start_link(__MODULE__, [session_module, socket, :outbound], [])
   end
 
+  @impl true
   def init([owner, socket, :inbound]) when is_port(socket) do
     {:ok, {host, port}} = :inet.peername(socket)
 
@@ -73,7 +75,8 @@ defmodule SwitchX.Connection do
 
   ## Handler events ##
 
-  def handle_event({:call, from}, {:close}, state, data) do
+  @impl true
+  def handle_event({:call, from}, {:close}, _state, data) do
     :gen_tcp.close(data.socket)
     :gen_statem.reply(from, :ok)
     {:next_state, :disconnected, data}
@@ -81,11 +84,6 @@ defmodule SwitchX.Connection do
 
   def handle_event({:call, from}, message, state, data) do
     apply(__MODULE__, state, [:call, message, from, data])
-  end
-
-  def handle_event(:info, {:tcp, _socket, "\n"}, _state, data) do
-    # Empty line discarding
-    {:keep_state, data}
   end
 
   def handle_event(:info, :read_data, :connecting, data) do
@@ -99,15 +97,24 @@ defmodule SwitchX.Connection do
     {:next_state, :ready, data}
   end
 
+  def handle_event(:info, {:tcp, _socket, "\n"}, _state, data) do
+    # Empty line discarding
+    {:keep_state, data}
+  end
+
   def handle_event(:info, {:tcp, socket, payload}, state, data) do
+    # Logger.info("SwitchX Received raw payload: #{inspect payload}")
     event = Socket.recv(socket, payload)
+    # Logger.info("SwitchX Received data after recv: #{inspect payload} e: #{inspect event}")
     :inet.setopts(socket, active: :once)
 
     content_type = event.headers["Content-Type"]
     # Parsing disconnect for any state
     case content_type do
-      "text/disconnect-notice" -> handle_event(:disconnect, event, state, data)
-      ^content_type -> apply(__MODULE__, state, [:event, event, data])
+      "text/disconnect-notice" ->
+        handle_event(:disconnect, event, state, data)
+      ^content_type ->
+        apply(__MODULE__, state, [:event, event, data])
     end
   end
 
@@ -124,7 +131,7 @@ defmodule SwitchX.Connection do
       _disposition ->
         Logger.info("Disconnect received, closing socket.")
         :gen_tcp.close(data.socket)
-        {:next_state, :disconnected, data}
+        {:stop, :disconnected}
     end
   end
 
@@ -155,13 +162,21 @@ defmodule SwitchX.Connection do
 
   def ready(:call, {:api, args}, from, data) do
     data = put_in(data.api_calls, :queue.in(from, data.api_calls))
+    # api_cmd = "api #{args}\n\n"
+    # Logger.info("SwitchX Sending API command: #{inspect api_cmd}")
     :gen_tcp.send(data.socket, "api #{args}\n\n")
     {:keep_state, data}
   end
 
   def ready(:call, {:listen_event, event_name}, from, data) do
     :gen_tcp.send(data.socket, "event plain #{event_name}\n\n")
-    :gen_statem.reply(from, {:ok, "Listening #{event_name}"})
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
+    {:keep_state, data}
+  end
+
+  def ready(:call, {:filter, args}, from, data) do
+    :gen_tcp.send(data.socket, "filter #{args}\n\n")
+    data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
     {:keep_state, data}
   end
 
@@ -246,13 +261,13 @@ defmodule SwitchX.Connection do
   end
 
   def ready(:call, {:bgapi, args}, from, data) do
-    job_uuid = UUID.uuid4()
+    #job_uuid = UUID.uuid4()
     :gen_tcp.send(data.socket, "bgapi #{args}\n\n")
     data = put_in(data.commands_sent, :queue.in(from, data.commands_sent))
     {:keep_state, data}
   end
 
-  def disconnected(:call, payload, from, data) do
+  def disconnected(:call, _payload, from, data) do
     :gen_statem.reply(from, {:error, :disconnected})
     {:keep_state, data}
   end
@@ -330,7 +345,7 @@ defmodule SwitchX.Connection do
     {:keep_state, data}
   end
 
-  def disconnected(:event, payload, data) do
+  def disconnected(:event, _payload, data) do
     {:keep_state, data}
   end
 
