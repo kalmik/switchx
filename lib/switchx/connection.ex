@@ -3,9 +3,7 @@ defmodule SwitchX.Connection do
 
   @behaviour :gen_statem
   require Logger
-  alias SwitchX.Connection.{
-    Socket
-  }
+  alias SwitchX.Connection.Socket
 
   defstruct [
     :host,

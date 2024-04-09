@@ -2,6 +2,7 @@ defmodule SwitchX do
   ## API ##
   require Logger
 
+  @timeout 5_000
   @doc """
   Tells FreeSWITCH not to close the socket connection when a channel hangs up.
   Instead, it keeps the socket connection open until the last event related
@@ -36,7 +37,12 @@ defmodule SwitchX do
       {:error, "Denied"}
   """
   @spec auth(conn :: Pid, password :: String) :: {:ok, term} | {:error, term}
-  def auth(conn, password), do: :gen_statem.call(conn, {:auth, password})
+  def auth(conn, password),
+    do: auth(conn, password, @timeout)
+
+  @spec auth(conn :: Pid, password :: String, timeout :: non_neg_integer()) :: {:ok, term} | {:error, term}
+  def auth(conn, password, timeout),
+    do: :gen_statem.call(conn, {:auth, password}, timeout)
 
   @doc """
   Send a FreeSWITCH API command.
@@ -58,7 +64,12 @@ defmodule SwitchX do
       }
   """
   @spec api(conn :: Pid, args :: String) :: {:ok, term}
-  def api(conn, args), do: :gen_statem.call(conn, {:api, args})
+  def api(conn, args),
+    do: api(conn, args, @timeout)
+
+  @spec api(conn :: Pid, args :: String, timeout :: non_neg_integer()) :: {:ok, term}
+  def api(conn, args, timeout),
+    do: :gen_statem.call(conn, {:api, args}, timeout)
 
   @doc """
   Enable or disable events by class or all.
