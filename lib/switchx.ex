@@ -18,7 +18,7 @@ defmodule SwitchX do
       {:ok, "Lingering"}
   """
   @spec linger(conn :: Pid) :: term
-  def linger(conn, linger_time), do: :gen_statem.call(conn, {:linger})
+  def linger(conn), do: :gen_statem.call(conn, {:linger})
 
   @spec linger(conn :: Pid, linger_time :: Integer) :: term
   def linger(conn, linger_time), do: :gen_statem.call(conn, {:linger, linger_time})
