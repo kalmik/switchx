@@ -48,7 +48,7 @@ defmodule SwitchX.MixProject do
     [
       {:uuid, "~> 1.1"},
       {:mock, "~> 0.3.0", only: :test},
-      {:telemetry, "~> 0.4.2"},
+      {:telemetry, "~> 1.3.0"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false}
     ]
   end
