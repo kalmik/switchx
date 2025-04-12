@@ -216,6 +216,11 @@ defmodule SwitchX do
     :gen_statem.stop(conn, :normal, 1_000)
   end
 
+  @spec stop(conn :: Pid) :: :ok | {:error, term}
+  def stop(conn) do
+    :gen_statem.stop(conn, :normal, 1_000)
+  end
+
   @doc """
   Hang up the call with a hangup_cause.
   """
