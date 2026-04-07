@@ -66,13 +66,15 @@ defmodule SwitchX.Connection.Inbound do
   end
 
   defp perform_connect(host, port, socket_opts, timeout) when is_binary(host) do
-    host =
-      host
-      |> String.split(".")
-      |> Enum.map(&String.to_integer/1)
-      |> List.to_tuple()
+    # Try to parse as an IP address first, otherwise treat as hostname
+    case :inet.parse_address(String.to_charlist(host)) do
+      {:ok, ip_tuple} ->
+        :gen_tcp.connect(ip_tuple, port, socket_opts, timeout)
 
-    perform_connect(host, port, socket_opts, timeout)
+      {:error, :einval} ->
+        # Not a valid IP address, treat as hostname (charlist format)
+        :gen_tcp.connect(String.to_charlist(host), port, socket_opts, timeout)
+    end
   end
 
   defp perform_connect(host, port, socket_opts, timeout) when is_tuple(host) do
